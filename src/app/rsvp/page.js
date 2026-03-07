@@ -92,6 +92,9 @@ export default function RSVPPage() {
     alert(json.modified ? "RSVP updated!" : "RSVP submitted!");
   }
 
+  // Determine if anyone in the group can bring a plus-one
+  const canBringPlusOne = data?.members?.some((m) => m.plus_one_allowed) ?? false;
+
   return (
     <main className="mx-auto flex min-h-screen max-w-2xl flex-col p-6">
       <h1 className="text-3xl font-bold">RSVP</h1>
@@ -106,7 +109,7 @@ export default function RSVPPage() {
           placeholder="e.g. TEST123"
         />
         <button
-          className="mt-3 rounded-md bg-black px-4 py-2 text-white"
+          className="mt-3 cursor-pointer rounded-md bg-black px-4 py-2 text-white hover:bg-gray-800 transition-colors"
           onClick={lookup}
         >
           Continue
@@ -132,7 +135,7 @@ export default function RSVPPage() {
 
             <div className="mt-4 flex gap-2">
               <button
-                className="flex-1 rounded-md border px-3 py-2"
+                className="flex-1 cursor-pointer rounded-md border px-3 py-2 hover:bg-gray-100 transition-colors"
                 onClick={() => {
                   setMode("view");
                   setShowExisting(false);
@@ -141,7 +144,7 @@ export default function RSVPPage() {
                 View
               </button>
               <button
-                className="flex-1 rounded-md bg-black px-3 py-2 text-white"
+                className="flex-1 cursor-pointer rounded-md bg-black px-3 py-2 text-white hover:bg-gray-800 transition-colors"
                 onClick={() => {
                   setMode("modify");
                   setShowExisting(false);
@@ -168,9 +171,10 @@ export default function RSVPPage() {
 
             <div className="mt-3 space-y-2">
               {data.members.map((m) => (
-                <label key={m.user_id} className="flex items-center gap-2">
+                <label key={m.user_id} className="flex items-center gap-2 cursor-pointer">
                   <input
                     type="checkbox"
+                    className="cursor-pointer"
                     checked={attendingIds.includes(m.user_id)}
                     onChange={() => toggleMember(m.user_id)}
                     disabled={mode === "view"}
@@ -182,24 +186,29 @@ export default function RSVPPage() {
           </div>
 
           <div className="rounded-xl border p-4 space-y-3">
-            <label className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                checked={plusOne}
-                onChange={(e) => setPlusOne(e.target.checked)}
-                disabled={mode === "view"}
-              />
-              <span>Bringing a plus-one?</span>
-            </label>
+            {canBringPlusOne && (
+              <>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    className="cursor-pointer"
+                    checked={plusOne}
+                    onChange={(e) => setPlusOne(e.target.checked)}
+                    disabled={mode === "view"}
+                  />
+                  <span>Bringing a plus-one?</span>
+                </label>
 
-            {plusOne && (
-              <input
-                className="w-full rounded-md border px-3 py-2"
-                value={plusOneName}
-                onChange={(e) => setPlusOneName(e.target.value)}
-                placeholder="Plus-one name"
-                disabled={mode === "view"}
-              />
+                {plusOne && (
+                  <input
+                    className="w-full rounded-md border px-3 py-2"
+                    value={plusOneName}
+                    onChange={(e) => setPlusOneName(e.target.value)}
+                    placeholder="Plus-one name"
+                    disabled={mode === "view"}
+                  />
+                )}
+              </>
             )}
 
             <input
@@ -226,7 +235,7 @@ export default function RSVPPage() {
 
             {mode !== "view" && (
               <button
-                className="rounded-md bg-black px-4 py-2 text-white"
+                className="cursor-pointer rounded-md bg-black px-4 py-2 text-white hover:bg-gray-800 transition-colors"
                 onClick={submit}
               >
                 {mode === "modify" ? "Update RSVP" : "Submit RSVP"}
