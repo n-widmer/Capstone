@@ -26,7 +26,7 @@ CREATE TABLE IF NOT EXISTS users (
     plus_one_allowed TINYINT(1) DEFAULT 0,
     is_child         TINYINT(1) DEFAULT 0,
     is_21            TINYINT(1) DEFAULT NULL,
-    list             ENUM('A', 'B') NOT NULL,
+    list             VARCHAR(20),
     FOREIGN KEY (group_id) REFERENCES `groups`(group_id)
 );
 
