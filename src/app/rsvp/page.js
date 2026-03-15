@@ -10,8 +10,7 @@ export default function RSVPPage() {
   const [mode, setMode] = useState("create"); // "create" | "view" | "modify"
 
   const [attendingIds, setAttendingIds] = useState([]);
-  const [plusOne, setPlusOne] = useState(false);
-  const [plusOneName, setPlusOneName] = useState("");
+  const [plusOneByUser, setPlusOneByUser] = useState({});
   const [diet, setDiet] = useState("");
   const [dress, setDress] = useState("");
   const [songs, setSongs] = useState("");
@@ -32,6 +31,14 @@ export default function RSVPPage() {
 
     setData(json);
 
+    const map = {};
+    for (const m of json.members) {
+      if (Number(m.plus_one_allowed) === 1 && Number(m.plus_one) === 1) {
+        map[m.user_id] = m.plus_one_name || "";
+      }
+    }
+    setPlusOneByUser(map);
+
     // default: select everyone attending
     const attendingFromDb = json.members
       .filter((m) => Number(m.attending) === 1)
@@ -42,14 +49,10 @@ export default function RSVPPage() {
     setAttendingIds(hasAnyRsvpRows ? attendingFromDb : []);
 
     if (json.rsvp_meta) {
-      setPlusOne(Number(json.rsvp_meta.plus_one) === 1);
-      setPlusOneName(json.rsvp_meta.plus_one_name || "");
       setDiet(json.rsvp_meta.diet_restrictions || "");
       setDress(json.rsvp_meta.dress_code || "");
       setSongs(json.rsvp_meta.song_recommendations || "");
     } else {
-      setPlusOne(false);
-      setPlusOneName("");
       setDiet("");
       setDress("");
       setSongs("");
@@ -61,13 +64,32 @@ export default function RSVPPage() {
   }
 
   function toggleMember(uid) {
-    setAttendingIds((prev) =>
-      prev.includes(uid) ? prev.filter((x) => x !== uid) : [...prev, uid]
-    );
+    setAttendingIds((prev) => {
+      const next = prev.includes(uid) ? prev.filter((x) => x !== uid) : [...prev, uid];
+
+      // If they are now NOT attending, remove any plus-one entry for them
+      if (!next.includes(uid)) {
+        setPlusOneByUser((prevPlus) => {
+          const copy = { ...prevPlus };
+          delete copy[uid];
+          return copy;
+        });
+      }
+
+      return next;
+    });
   }
 
   async function submit() {
     setError("");
+
+    const emptyPlusOnes = Object.entries(plusOneByUser)
+      .filter(([_, name]) => String(name).trim().length === 0);
+
+    if (emptyPlusOnes.length > 0) {
+      setError("Please enter a name for each selected plus-one (or uncheck it).");
+      return;
+    }
 
     const res = await fetch("/api/rsvp", {
       method: "POST",
@@ -75,8 +97,7 @@ export default function RSVPPage() {
       body: JSON.stringify({
         access_code: code.trim(),
         attending_user_ids: attendingIds,
-        plus_one: plusOne ? 1 : 0,
-        plus_one_name: plusOneName,
+        plus_ones: plusOneByUser,
         diet_restrictions: diet,
         dress_code: dress,
         song_recommendations: songs,
@@ -92,8 +113,11 @@ export default function RSVPPage() {
     alert(json.modified ? "RSVP updated!" : "RSVP submitted!");
   }
 
-  // Determine if anyone in the group can bring a plus-one
-  const canBringPlusOne = data?.members?.some((m) => m.plus_one_allowed) ?? false;
+  // Determine the group members that can bring a plus-one
+  const eligiblePlusOneUsers =
+    (data?.members ?? []).filter(
+      (m) => Number(m.plus_one_allowed) === 1 && attendingIds.includes(m.user_id)
+    );
 
   return (
     <main className="mx-auto flex min-h-screen max-w-2xl flex-col p-6">
@@ -117,7 +141,6 @@ export default function RSVPPage() {
         {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
       </div>
 
-      {/* Existing RSVP popup */}
       {showExisting && data && (
         <div className="fixed inset-0 flex items-center justify-center bg-black/40 p-4">
           <div className="w-full max-w-md rounded-xl bg-white p-5">
@@ -186,29 +209,61 @@ export default function RSVPPage() {
           </div>
 
           <div className="rounded-xl border p-4 space-y-3">
-            {canBringPlusOne && (
-              <>
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    className="cursor-pointer"
-                    checked={plusOne}
-                    onChange={(e) => setPlusOne(e.target.checked)}
-                    disabled={mode === "view"}
-                  />
-                  <span>Bringing a plus-one?</span>
-                </label>
+            {eligiblePlusOneUsers.length > 0 && (
+              <div className="rounded-xl border p-4 space-y-3">
+                <h3 className="font-medium">Plus-ones</h3>
+                <p className="text-sm text-zinc-600">
+                  If someone is bringing a guest, enter their guest’s name.
+                </p>
 
-                {plusOne && (
-                  <input
-                    className="w-full rounded-md border px-3 py-2"
-                    value={plusOneName}
-                    onChange={(e) => setPlusOneName(e.target.value)}
-                    placeholder="Plus-one name"
-                    disabled={mode === "view"}
-                  />
-                )}
-              </>
+                {eligiblePlusOneUsers.map((m) => {
+                  const hasEntry = Object.prototype.hasOwnProperty.call(plusOneByUser, m.user_id);
+                  const value = hasEntry ? (plusOneByUser[m.user_id] ?? "") : "";
+
+                  return (
+                    <div key={m.user_id} className="space-y-2">
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          className="cursor-pointer"
+                          checked={hasEntry}
+                          disabled={mode === "view"}
+                          onChange={(e) => {
+                            const isChecked = e.target.checked;
+                            setPlusOneByUser((prev) => {
+                              const next = { ...prev };
+                              if (!isChecked) {
+                                delete next[m.user_id];
+                              } else {
+                                // create an empty slot so the input shows and they can type
+                                if (!Object.prototype.hasOwnProperty.call(next, m.user_id)) {
+                                  next[m.user_id] = "";
+                                }
+                              }
+                              return next;
+                            });
+                          }}
+                        />
+                        <span className="font-medium">{m.name}</span>
+                        <span className="text-sm text-zinc-600">plus-one</span>
+                      </label>
+
+                      {hasEntry && (
+                        <input
+                          className="w-full rounded-md border px-3 py-2"
+                          value={value}
+                          disabled={mode === "view"}
+                          placeholder={`Guest name for ${m.name}`}
+                          onChange={(e) => {
+                            const newVal = e.target.value;
+                            setPlusOneByUser((prev) => ({ ...prev, [m.user_id]: newVal }));
+                          }}
+                        />
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
             )}
 
             <input
