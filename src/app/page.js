@@ -1,8 +1,14 @@
+// Home page — maps to the "/" route
+import PhotoLoop from "@/components/photoLoop";
+
 export default function Home() {
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center">
-      <h1 className="text-4xl font-bold">Tori & Connor</h1>
-      <p className="mt-4 text-lg text-gray-600">Welcome to our wedding website</p>
+    <main className="flex flex-col items-center px-6 py-10">
+
+      {/* Photos displayed at the top of the landing page */}
+      <div className="w-full max-w-3xl">
+        <PhotoLoop />
+      </div>
 
       {/* TODO: Access code input form */}
     </main>
