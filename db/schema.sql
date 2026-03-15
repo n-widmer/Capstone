@@ -9,36 +9,42 @@ USE WeddingDB;
 CREATE TABLE IF NOT EXISTS `groups` (
     group_id    INT AUTO_INCREMENT PRIMARY KEY,
     family_name VARCHAR(100) NOT NULL,
-    section     VARCHAR(50),
-    category    VARCHAR(50),
-    access_code VARCHAR(20) UNIQUE NOT NULL
+    section     VARCHAR(50) NOT NULL,
+    category    VARCHAR(50) NOT NULL,
+    access_code VARCHAR(50) UNIQUE NOT NULL,
+    UNIQUE KEY uq_group (family_name, section, category)
 );
 
 -- Users: individual guests belonging to a group
 CREATE TABLE IF NOT EXISTS users (
     user_id          INT AUTO_INCREMENT PRIMARY KEY,
     group_id         INT NOT NULL,
-    first_name       VARCHAR(50) NOT NULL,
-    last_name        VARCHAR(50) NOT NULL,
+    first_name       VARCHAR(100) NOT NULL,
+    last_name        VARCHAR(100) NOT NULL,
+    phone_number     VARCHAR(20) DEFAULT NULL,
+    address          VARCHAR(255) DEFAULT NULL,
     plus_one_allowed TINYINT(1) DEFAULT 0,
     is_child         TINYINT(1) DEFAULT 0,
-    is_21            TINYINT(1) DEFAULT 0,
-    list             VARCHAR(20),
-    FOREIGN KEY (group_id) REFERENCES `groups`(group_id) ON DELETE CASCADE
+    is_21            TINYINT(1) DEFAULT NULL,
+    list             ENUM('A', 'B') NOT NULL,
+    FOREIGN KEY (group_id) REFERENCES `groups`(group_id)
 );
 
 -- RSVPs: guest responses
 CREATE TABLE IF NOT EXISTS rsvps (
-    rsvp_id              INT AUTO_INCREMENT PRIMARY KEY,
+    id                   INT AUTO_INCREMENT PRIMARY KEY,
     user_id              INT UNIQUE NOT NULL,
-    attending            TINYINT(1),
+    attending            TINYINT(1) NOT NULL,
     plus_one             TINYINT(1) DEFAULT 0,
-    plus_one_name        VARCHAR(100),
+    plus_one_name        VARCHAR(100) DEFAULT NULL,
     diet_restrictions    TEXT,
-    dress_code           VARCHAR(100),
+    dress_code           VARCHAR(100) DEFAULT NULL,
     song_recommendations TEXT,
-    submitted_at         TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
+    FOREIGN KEY (user_id) REFERENCES users(user_id),
+    CONSTRAINT rsvps_chk_1 CHECK (
+        ((plus_one = false) AND (plus_one_name IS NULL)) OR
+        ((plus_one = true) AND (plus_one_name IS NOT NULL))
+    )
 );
 
 -- Admin users for dashboard access
