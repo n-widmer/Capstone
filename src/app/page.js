@@ -73,7 +73,7 @@ export default function Home() {
           <div>
             <h2 className="font-[family-name:var(--font-cormorant)] text-2xl text-sky-900 mb-3">Please Note</h2>
             <p className="font-[family-name:var(--font-cormorant)] text-sky-800/70 leading-relaxed max-w-xl mx-auto">
-              <strong>There WILL be a sheriff monitoring for drunk driving. Please plan accordingly and arrange for safe transportation!!</strong>
+              <strong>There WILL be a sheriff monitoring for drunk driving. We will also be providing a shuttle service to and from the hotel. If you choose not to use this PLEASE plan accordingly and arrange for safe transportation!!</strong>
             </p>
           </div>
         </div>

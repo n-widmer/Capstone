@@ -17,7 +17,7 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body className={`antialiased bg-sky-200 min-h-screen ${cormorant.variable}`}>
+      <body className={`antialiased bg-sky-200 min-h-screen ${cormorant.variable} font-[family-name:var(--font-cormorant)]`}>
         <Navigation />
         {children}
       </body>
