@@ -1,5 +1,12 @@
 import "./globals.css";
+import { Cormorant_Garamond } from "next/font/google";
 import Navigation from "@/components/Navigation";
+
+const cormorant = Cormorant_Garamond({
+  subsets: ["latin"],
+  weight: ["300", "400", "600"],
+  variable: "--font-cormorant",
+});
 
 export const metadata = {
   title: "Tori & Connor's Wedding",
@@ -10,7 +17,7 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body className="antialiased">
+      <body className={`antialiased bg-sky-200 min-h-screen ${cormorant.variable}`}>
         <Navigation />
         {children}
       </body>
