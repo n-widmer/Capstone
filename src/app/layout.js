@@ -1,4 +1,5 @@
 import "./globals.css";
+import Navigation from "@/components/Navigation";
 
 export const metadata = {
   title: "Tori & Connor's Wedding",
@@ -9,7 +10,10 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body className="antialiased">{children}</body>
+      <body className="antialiased">
+        <Navigation />
+        {children}
+      </body>
     </html>
   );
 }
