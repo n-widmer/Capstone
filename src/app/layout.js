@@ -1,6 +1,7 @@
 import "./globals.css";
 import { Cormorant_Garamond } from "next/font/google";
 import Navigation from "@/components/Navigation";
+import PageTransition from "@/components/PageTransition";
 
 const cormorant = Cormorant_Garamond({
   subsets: ["latin"],
@@ -19,7 +20,7 @@ export default function RootLayout({ children }) {
     <html lang="en">
       <body className={`antialiased bg-sky-200 min-h-screen ${cormorant.variable} font-[family-name:var(--font-cormorant)]`}>
         <Navigation />
-        {children}
+        <PageTransition>{children}</PageTransition>
       </body>
     </html>
   );
