@@ -129,14 +129,14 @@ export default function RSVPPage() {
                 Access Code
               </label>
               <input
-                className="w-full rounded-lg border-2 border-sky-400 px-4 py-3 text-lg focus:border-sky-600 focus:ring-2 focus:ring-sky-200 transition-all"
+                className="w-full rounded-lg border-2 border-sky-400 px-4 py-3 text-lg focus:border-sky-600 focus:ring-2 focus:ring-sky-200 transition-all duration-200"
                 value={code}
                 onChange={(e) => setCode(e.target.value)}
                 placeholder="e.g. ABC123"
               />
             </div>
             <button
-              className="w-full cursor-pointer rounded-lg bg-sky-800 px-6 py-4 text-lg font-bold text-white hover:bg-sky-900 transition-all shadow-lg hover:shadow-xl"
+              className="w-full cursor-pointer rounded-lg bg-sky-800 px-6 py-4 text-lg font-bold text-white hover:bg-sky-900 hover:scale-[1.02] transition-all duration-200 shadow-lg hover:shadow-xl"
               onClick={lookup}
             >
               Continue to RSVP
@@ -174,7 +174,7 @@ export default function RSVPPage() {
 
             <div className="mt-6 flex gap-3">
               <button
-                className="flex-1 cursor-pointer rounded-lg border-2 border-sky-500 px-4 py-3 font-semibold text-sky-700 hover:bg-sky-50 transition-colors"
+                className="flex-1 cursor-pointer rounded-lg border-2 border-sky-500 px-4 py-3 font-semibold text-sky-700 hover:bg-sky-50 hover:scale-[1.02] transition-all duration-200"
                 onClick={() => {
                   setMode("view");
                   setShowExisting(false);
@@ -183,7 +183,7 @@ export default function RSVPPage() {
                 View
               </button>
               <button
-                className="flex-1 cursor-pointer rounded-lg bg-sky-800 px-4 py-3 font-bold text-white hover:bg-sky-900 transition-all shadow-md"
+                className="flex-1 cursor-pointer rounded-lg bg-sky-800 px-4 py-3 font-bold text-white hover:bg-sky-900 hover:scale-[1.02] transition-all duration-200 shadow-md"
                 onClick={() => {
                   setMode("modify");
                   setShowExisting(false);
@@ -216,7 +216,7 @@ export default function RSVPPage() {
                 <label key={m.user_id} className="flex items-center gap-3 p-3 rounded-lg hover:bg-sky-50 cursor-pointer transition-colors border border-gray-200">
                   <input
                     type="checkbox"
-                    className="cursor-pointer w-5 h-5 text-sky-600 rounded focus:ring-sky-500"
+                    className="cursor-pointer w-5 h-5 text-sky-600 rounded focus:ring-sky-500 transition-all duration-200"
                     checked={attendingIds.includes(m.user_id)}
                     onChange={() => toggleMember(m.user_id)}
                     disabled={mode === "view"}
@@ -234,7 +234,7 @@ export default function RSVPPage() {
                 <label className="flex items-center gap-3 cursor-pointer">
                   <input
                     type="checkbox"
-                    className="cursor-pointer w-5 h-5 text-sky-600 rounded focus:ring-sky-500"
+                    className="cursor-pointer w-5 h-5 text-sky-600 rounded focus:ring-sky-500 transition-all duration-200"
                     checked={plusOne}
                     onChange={(e) => setPlusOne(e.target.checked)}
                     disabled={mode === "view"}
@@ -244,7 +244,7 @@ export default function RSVPPage() {
 
                 {plusOne && (
                   <input
-                    className="mt-3 w-full rounded-lg border-2 border-sky-400 px-4 py-2 focus:border-sky-600 focus:ring-2 focus:ring-sky-200"
+                    className="mt-3 w-full rounded-lg border-2 border-sky-400 px-4 py-2 focus:border-sky-600 focus:ring-2 focus:ring-sky-200 transition-all duration-200"
                     value={plusOneName}
                     onChange={(e) => setPlusOneName(e.target.value)}
                     placeholder="Plus-one's name"
@@ -259,7 +259,7 @@ export default function RSVPPage() {
                 Dietary Restrictions / Allergies
               </label>
               <input
-                className="w-full rounded-lg border-2 border-sky-400 px-4 py-3 focus:border-sky-600 focus:ring-2 focus:ring-sky-200"
+                className="w-full rounded-lg border-2 border-sky-400 px-4 py-3 focus:border-sky-600 focus:ring-2 focus:ring-sky-200 transition-all duration-200"
                 value={diet}
                 onChange={(e) => setDiet(e.target.value)}
                 placeholder="Let us know about any dietary needs..."
@@ -272,7 +272,7 @@ export default function RSVPPage() {
                 Dress Code Notes (optional)
               </label>
               <input
-                className="w-full rounded-lg border-2 border-sky-400 px-4 py-3 focus:border-sky-600 focus:ring-2 focus:ring-sky-200"
+                className="w-full rounded-lg border-2 border-sky-400 px-4 py-3 focus:border-sky-600 focus:ring-2 focus:ring-sky-200 transition-all duration-200"
                 value={dress}
                 onChange={(e) => setDress(e.target.value)}
                 placeholder="Any questions about attire?"
@@ -285,7 +285,7 @@ export default function RSVPPage() {
                 Song Requests
               </label>
               <input
-                className="w-full rounded-lg border-2 border-sky-400 px-4 py-3 focus:border-sky-600 focus:ring-2 focus:ring-sky-200"
+                className="w-full rounded-lg border-2 border-sky-400 px-4 py-3 focus:border-sky-600 focus:ring-2 focus:ring-sky-200 transition-all duration-200"
                 value={songs}
                 onChange={(e) => setSongs(e.target.value)}
                 placeholder="Help us build the perfect playlist!"
@@ -295,7 +295,7 @@ export default function RSVPPage() {
 
             {mode !== "view" && (
               <button
-                className="w-full cursor-pointer rounded-lg bg-sky-800 px-6 py-4 text-lg font-bold text-white hover:bg-sky-900 transition-all shadow-lg hover:shadow-xl"
+                className="w-full cursor-pointer rounded-lg bg-sky-800 px-6 py-4 text-lg font-bold text-white hover:bg-sky-900 hover:scale-[1.02] transition-all duration-200 shadow-lg hover:shadow-xl"
                 onClick={submit}
               >
                 {mode === "modify" ? "Update RSVP" : "Submit RSVP"}

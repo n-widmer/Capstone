@@ -16,7 +16,7 @@ export default function RegistryPage() {
         {/* Registry Cards */}
         <div className="grid md:grid-cols-2 gap-8 mb-12">
           {/* Placeholder Registry 1 */}
-          <div className="bg-white rounded-xl shadow-lg border-2 border-sky-300 p-8 hover:shadow-2xl transition-shadow">
+          <div className="bg-white rounded-xl shadow-lg border-2 border-sky-300 p-8 hover:shadow-2xl hover:-translate-y-1 transition-all duration-200">
             <div className="text-center">
               <div className="w-24 h-24 bg-sky-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <span className="text-4xl">🎁</span>
@@ -37,7 +37,7 @@ export default function RegistryPage() {
           </div>
 
           {/* Placeholder Registry 2 */}
-          <div className="bg-white rounded-xl shadow-lg border-2 border-sky-300 p-8 hover:shadow-2xl transition-shadow">
+          <div className="bg-white rounded-xl shadow-lg border-2 border-sky-300 p-8 hover:shadow-2xl hover:-translate-y-1 transition-all duration-200">
             <div className="text-center">
               <div className="w-24 h-24 bg-sky-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <span className="text-4xl">💝</span>

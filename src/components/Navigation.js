@@ -35,8 +35,8 @@ export default function Navigation() {
               href={link.href}
               className={`text-xs md:text-sm tracking-[0.15em] uppercase transition-colors cursor-pointer pb-1 ${
                 pathname === link.href
-                  ? "text-sky-900 border-b border-sky-900"
-                  : "text-sky-900/60 hover:text-sky-900"
+                  ? "text-sky-900 relative after:absolute after:bottom-0 after:left-0 after:w-full after:h-px after:bg-sky-900"
+                  : "text-sky-900/60 hover:text-sky-900 relative after:absolute after:bottom-0 after:left-0 after:w-0 after:h-px after:bg-sky-900 hover:after:w-full after:transition-all after:duration-300"
               }`}
             >
               {link.label}

@@ -47,7 +47,7 @@ export default function Home() {
 
         <Link
           href="/rsvp"
-          className="font-[family-name:var(--font-cormorant)] inline-block px-10 py-3 border border-sky-900 text-sky-900 text-sm tracking-[0.2em] uppercase hover:bg-sky-900 hover:text-white transition-all cursor-pointer"
+          className="font-[family-name:var(--font-cormorant)] inline-block px-10 py-3 border border-sky-900 text-sky-900 text-sm tracking-[0.2em] uppercase hover:bg-sky-900 hover:text-white hover:scale-105 transition-all duration-200 cursor-pointer"
         >
           RSVP
         </Link>

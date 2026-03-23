@@ -71,7 +71,7 @@ export default function MenuPage() {
               ~ Beverages ~
             </h2>
             <div className="text-center space-y-3">
-              <div className="bg-sky-50 p-4 rounded-lg border-l-4 border-sky-500">
+              <div className="bg-sky-50 p-4 rounded-lg border-l-4 border-sky-500 hover:shadow-lg transition-shadow duration-200">
                 <h3 className="text-xl font-semibold text-sky-900 mb-2">🍸 Open Bar</h3>
                 <p className="text-gray-700">
                   Complimentary beer, wine, and cocktails
@@ -80,7 +80,7 @@ export default function MenuPage() {
                   Guests 21+ will be ID'd
                 </p>
               </div>
-              <div className="bg-sky-50 p-4 rounded-lg border-l-4 border-sky-500">
+              <div className="bg-sky-50 p-4 rounded-lg border-l-4 border-sky-500 hover:shadow-lg transition-shadow duration-200">
                 <p className="text-gray-700">
                   <strong className="text-sky-900">BYOB Welcome!</strong>
                   <br />
