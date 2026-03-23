@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import FallingTulips from "@/components/FallingTulips";
+import CountdownTimer from "@/components/CountdownTimer";
 
 export default function Home() {
   const venueAddress = "3931 State Route 39 NW Dover, OH 44622";
@@ -20,6 +21,8 @@ export default function Home() {
           priority
         />
       </div>
+
+      <CountdownTimer />
 
       {/* Venue & Date Section */}
       <div className="text-center px-4 mb-16 max-w-3xl mx-auto">
