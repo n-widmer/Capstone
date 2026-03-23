@@ -14,7 +14,8 @@ export default function RSVPPage() {
   const [plusOneName, setPlusOneName] = useState("");
   const [diet, setDiet] = useState("");
   const [dress, setDress] = useState("");
-  const [songs, setSongs] = useState("");
+  const [songTitle, setSongTitle] = useState("");
+  const [songArtist, setSongArtist] = useState("");
 
   async function lookup() {
     setError("");
@@ -46,13 +47,15 @@ export default function RSVPPage() {
       setPlusOneName(json.rsvp_meta.plus_one_name || "");
       setDiet(json.rsvp_meta.diet_restrictions || "");
       setDress(json.rsvp_meta.dress_code || "");
-      setSongs(json.rsvp_meta.song_recommendations || "");
+      setSongTitle(json.rsvp_meta.song_recommendations || "");
+      setSongArtist("");
     } else {
       setPlusOne(false);
       setPlusOneName("");
       setDiet("");
       setDress("");
-      setSongs("");
+      setSongTitle("");
+      setSongArtist("");
     }
 
     if (json.rsvp?.exists) {
@@ -79,7 +82,9 @@ export default function RSVPPage() {
         plus_one_name: plusOneName,
         diet_restrictions: diet,
         dress_code: dress,
-        song_recommendations: songs,
+        song_recommendations: songTitle,
+        song_title: songTitle,
+        song_artist: songArtist,
       }),
     });
 
@@ -282,15 +287,24 @@ export default function RSVPPage() {
 
             <div>
               <label className="block text-sm font-semibold text-sky-800 mb-2">
-                Song Requests
+                Song Request
               </label>
-              <input
-                className="w-full rounded-lg border-2 border-sky-400 px-4 py-3 focus:border-sky-600 focus:ring-2 focus:ring-sky-200 transition-all duration-200"
-                value={songs}
-                onChange={(e) => setSongs(e.target.value)}
-                placeholder="Help us build the perfect playlist!"
-                disabled={mode === "view"}
-              />
+              <div className="flex gap-2">
+                <input
+                  className="flex-1 rounded-lg border-2 border-sky-400 px-4 py-3 focus:border-sky-600 focus:ring-2 focus:ring-sky-200 transition-all duration-200"
+                  value={songTitle}
+                  onChange={(e) => setSongTitle(e.target.value)}
+                  placeholder="Song title"
+                  disabled={mode === "view"}
+                />
+                <input
+                  className="flex-1 rounded-lg border-2 border-sky-400 px-4 py-3 focus:border-sky-600 focus:ring-2 focus:ring-sky-200 transition-all duration-200"
+                  value={songArtist}
+                  onChange={(e) => setSongArtist(e.target.value)}
+                  placeholder="Artist (optional)"
+                  disabled={mode === "view"}
+                />
+              </div>
             </div>
 
             {mode !== "view" && (

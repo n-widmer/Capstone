@@ -127,6 +127,17 @@ export async function POST(req) {
       ]);
     }
 
+    // Save song request to song_requests table if provided
+    const song_title = body.song_title ? String(body.song_title).trim() : null;
+    const song_artist = body.song_artist ? String(body.song_artist).trim() : null;
+
+    if (song_title) {
+      await conn.execute(
+        `INSERT INTO song_requests (group_id, song_title, artist) VALUES (?, ?, ?)`,
+        [group_id, song_title, song_artist]
+      );
+    }
+
     await conn.commit();
 
     return NextResponse.json({
