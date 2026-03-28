@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import FallingTulips from "@/components/FallingTulips";
 import CountdownTimer from "@/components/CountdownTimer";
@@ -9,17 +10,17 @@ export default function Home() {
   return (
     <main className="relative flex min-h-screen flex-col items-center py-8 bg-amber-200">
       <FallingTulips />
-      {/* Hero Image - Parallax */}
-      <div
-        className="relative w-full max-w-5xl h-[600px] md:h-[950px] overflow-hidden mb-12"
-        style={{
-          backgroundImage: "url(/hero-photo.jpg)",
-          backgroundSize: "cover",
-          backgroundPosition: "center 10%",
-          backgroundAttachment: "fixed",
-          filter: "grayscale(100%)",
-        }}
-      />
+      {/* Hero Image - Cropped Landscape View */}
+      <div className="relative w-full max-w-5xl h-[600px] md:h-[950px] overflow-hidden mb-12">
+        <Image
+          src="/hero-photo.jpg"
+          alt="Tori and Connor"
+          fill
+          className="object-cover object-[center_10%]"
+          style={{ filter: "grayscale(100%)" }}
+          priority
+        />
+      </div>
 
       <CountdownTimer />
 
