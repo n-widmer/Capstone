@@ -8,12 +8,12 @@ export default function Navigation() {
 
   const navLinks = [
     { href: "/", label: "Home" },
+    { href: "/rsvp", label: "RSVP" },
     { href: "/menu", label: "Menu" },
     { href: "/registry", label: "Registry" },
     { href: "/photos", label: "Photos" },
     { href: "/things-to-do", label: "Things To Do" },
     { href: "/playlist", label: "Playlist" },
-    { href: "/rsvp", label: "RSVP" },
   ];
 
   return (

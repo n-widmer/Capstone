@@ -15,47 +15,51 @@ export default function RegistryPage() {
 
         {/* Registry Cards */}
         <div className="grid md:grid-cols-2 gap-8 mb-12">
-          {/* Placeholder Registry 1 */}
-          <div className="bg-white rounded-xl shadow-lg border-2 border-sky-300 p-8 hover:shadow-2xl hover:-translate-y-1 transition-all duration-200">
+          {/* Amazon Registry */}
+          <a
+            href="https://www.amazon.com/wedding/guest-view/B6T2KDY3A0GM"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="bg-white rounded-xl shadow-lg border-2 border-sky-300 p-8 hover:shadow-2xl hover:-translate-y-1 transition-all duration-200 block cursor-pointer"
+          >
             <div className="text-center">
-              <div className="w-24 h-24 bg-sky-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-4xl">🎁</span>
+              <div className="w-24 h-24 bg-amber-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="text-5xl font-bold text-amber-600">a</span>
               </div>
               <h2 className="text-2xl font-serif text-sky-900 mb-3">
-                Registry Coming Soon
+                Amazon Registry
               </h2>
               <p className="text-gray-600 mb-6">
-                We're still putting together our registry. Check back soon for details!
+                Browse our Amazon wedding registry for gift ideas and our gift card fund.
               </p>
-              <button
-                disabled
-                className="px-6 py-3 bg-gray-300 text-gray-500 rounded-lg cursor-not-allowed"
-              >
-                Coming Soon
-              </button>
+              <span className="inline-block px-6 py-3 bg-amber-500 text-white rounded-lg font-semibold hover:bg-amber-600 transition-colors">
+                Shop on Amazon
+              </span>
             </div>
-          </div>
+          </a>
 
-          {/* Placeholder Registry 2 */}
-          <div className="bg-white rounded-xl shadow-lg border-2 border-sky-300 p-8 hover:shadow-2xl hover:-translate-y-1 transition-all duration-200">
+          {/* Walmart Registry */}
+          <a
+            href="https://www.walmart.com/registry/WR/0afce135-2924-4b49-98a2-63d12cbb21c6"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="bg-white rounded-xl shadow-lg border-2 border-sky-300 p-8 hover:shadow-2xl hover:-translate-y-1 transition-all duration-200 block cursor-pointer"
+          >
             <div className="text-center">
-              <div className="w-24 h-24 bg-sky-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-4xl">💝</span>
+              <div className="w-24 h-24 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="text-4xl font-bold text-blue-600">W</span>
               </div>
               <h2 className="text-2xl font-serif text-sky-900 mb-3">
-                Additional Registry
+                Walmart Registry
               </h2>
               <p className="text-gray-600 mb-6">
-                More registry options will be available soon.
+                View our Walmart wedding registry for home essentials and more.
               </p>
-              <button
-                disabled
-                className="px-6 py-3 bg-gray-300 text-gray-500 rounded-lg cursor-not-allowed"
-              >
-                Coming Soon
-              </button>
+              <span className="inline-block px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors">
+                Shop on Walmart
+              </span>
             </div>
-          </div>
+          </a>
         </div>
 
         {/* Cash Fund Option */}
