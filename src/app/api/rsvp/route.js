@@ -27,8 +27,7 @@ export async function POST(req) {
   const access_code = (body.access_code || "").trim();
   const attending_user_ids = Array.isArray(body.attending_user_ids) ? body.attending_user_ids : [];
 
-  const plus_one = body.plus_one ? 1 : 0;
-  const plus_one_name = body.plus_one_name ? String(body.plus_one_name).trim() : null;
+  const plus_ones = body.plus_ones && typeof body.plus_ones === "object" ? body.plus_ones : {};
   const diet_restrictions = body.diet_restrictions ? String(body.diet_restrictions).trim() : null;
   const dress_code = body.dress_code ? String(body.dress_code).trim() : null;
   const song_recommendations = body.song_recommendations ? String(body.song_recommendations).trim() : null;
@@ -67,6 +66,36 @@ export async function POST(req) {
       return NextResponse.json({ ok: false, error: "No users found for this group" }, { status: 404 });
     }
 
+    const memberById = new Map(members.map(m => [Number(m.user_id), m]));
+    const plusOneEntries = Object.entries(plus_ones);
+
+    // Validate every plus-one entry
+    for (const [uidStr, guestNameRaw] of plusOneEntries) {
+      const uid = Number(uidStr);
+      const guestName = String(guestNameRaw ?? "").trim();
+
+      if (!Number.isInteger(uid)) {
+        await conn.rollback();
+        return NextResponse.json({ ok: false, error: "Invalid plus_ones key (user_id)" }, { status: 400 });
+      }
+
+      const member = memberById.get(uid);
+      if (!member) {
+        await conn.rollback();
+        return NextResponse.json({ ok: false, error: "Plus-one user must be in the group" }, { status: 403 });
+      }
+
+      if (Number(member.plus_one_allowed) !== 1) {
+        await conn.rollback();
+        return NextResponse.json({ ok: false, error: "Plus-one not allowed for one of the selected users" }, { status: 403 });
+      }
+
+      if (guestName.length === 0) {
+        await conn.rollback();
+        return NextResponse.json({ ok: false, error: "Plus-one name cannot be empty" }, { status: 400 });
+      }
+    }
+
     // Make sure the submitted attending_user_ids are all in this group
     const memberIdSet = new Set(members.map((m) => Number(m.user_id)));
     for (const id of attending_user_ids) {
@@ -89,14 +118,6 @@ export async function POST(req) {
       [group_id]
     );
 
-
-    // Insert fresh rows for all group members
-    // plus-one allowed: only enable if ANY submitting member has plus_one_allowed=1.
-    // (Simple rule for now.)
-    const anyPlusOneAllowed = members.some((m) => Number(m.plus_one_allowed) === 1);
-    const effectivePlusOne = anyPlusOneAllowed ? plus_one : 0;
-    const effectivePlusOneName = effectivePlusOne ? plus_one_name : null;
-
     const attendingSet = new Set(attending_user_ids.map((x) => Number(x)));
 
     const upsertSql = `
@@ -116,11 +137,18 @@ export async function POST(req) {
       const uid = Number(m.user_id);
       const attending = attendingSet.has(uid) ? 1 : 0;
 
+      const guestName = plus_ones[uid] ?? plus_ones[String(uid)] ?? null;
+      const normalizedGuestName = guestName ? String(guestName).trim() : "";
+
+      const rowPlusOneAllowedByAttendance = attending === 1;
+      const rowPlusOne = rowPlusOneAllowedByAttendance && normalizedGuestName.length > 0 ? 1 : 0;
+      const rowPlusOneName = rowPlusOne ? normalizedGuestName : null;
+
       await conn.execute(upsertSql, [
         uid,
         attending,
-        effectivePlusOne,
-        effectivePlusOneName,
+        rowPlusOne,
+        rowPlusOneName,
         diet_restrictions,
         dress_code,
         song_recommendations,

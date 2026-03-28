@@ -31,7 +31,9 @@ export async function GET(req) {
         u.first_name,
         u.last_name,
         u.plus_one_allowed,
-        r.attending AS attending
+        r.attending AS attending, 
+        r.plus_one, 
+        r.plus_one_name
       FROM users u
       LEFT JOIN rsvps r ON r.user_id = u.user_id
       WHERE u.group_id = ?
@@ -55,7 +57,7 @@ export async function GET(req) {
 
     // Load other RSVP data if it exists
     const [rsvpMetaRows] = await conn.execute(
-      `SELECT diet_restrictions, dress_code, song_recommendations, plus_one, plus_one_name
+      `SELECT diet_restrictions, dress_code, song_recommendations
       FROM rsvps r
       JOIN users u ON u.user_id = r.user_id
       WHERE u.group_id = ?
@@ -72,16 +74,15 @@ export async function GET(req) {
         user_id: m.user_id,
         name: `${m.first_name} ${m.last_name}`,
         plus_one_allowed: !!m.plus_one_allowed,
-        attending: m.attending === null ? null : Number(m.attending), // null if not in RSVP 
+        attending: m.attending === null ? null : Number(m.attending), // null if not in RSVP
+        plus_one: m.plus_one === null ? null : Number(m.plus_one),
+        plus_one_name: m.plus_one_name ?? null,
       })),
       rsvp: {
         exists: !!existing,
-        submitted_at: existing?.submitted_at || null,
         submitted_by: existing ? `${existing.submitted_first} ${existing.submitted_last}` : null,
       },
       rsvp_meta: meta ? {
-        plus_one: Number(meta.plus_one),
-        plus_one_name: meta.plus_one_name,
         diet_restrictions: meta.diet_restrictions,
         dress_code: meta.dress_code,
         song_recommendations: meta.song_recommendations,
