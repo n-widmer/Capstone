@@ -20,6 +20,25 @@ CREATE TABLE IF NOT EXISTS song_votes (
   UNIQUE KEY unique_vote (song_id, group_id)
 );
 
+-- Settings table (client-editable config)
+CREATE TABLE IF NOT EXISTS settings (
+  key_name VARCHAR(50) PRIMARY KEY,
+  value TEXT NOT NULL
+);
+INSERT IGNORE INTO settings (key_name, value) VALUES ('rsvp_deadline', '2027-04-15');
+INSERT IGNORE INTO settings (key_name, value) VALUES ('wedding_budget', '25000');
+
+-- Expenses table (budget tracker)
+CREATE TABLE IF NOT EXISTS expenses (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  category VARCHAR(50) NOT NULL,
+  description VARCHAR(255),
+  amount DECIMAL(10,2) NOT NULL,
+  paid BOOLEAN DEFAULT FALSE,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
 -- Photos table
 CREATE TABLE IF NOT EXISTS photos (
   id INT AUTO_INCREMENT PRIMARY KEY,

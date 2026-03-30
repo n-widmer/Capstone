@@ -10,7 +10,8 @@
       "Bash(git merge:*)",
       "Bash(git push:*)",
       "Bash(pkill -f \"next dev\")",
-      "Bash(git stash:*)"
+      "Bash(git stash:*)",
+      "Bash(npm install:*)"
     ]
   }
 }
