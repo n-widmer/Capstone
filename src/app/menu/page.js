@@ -5,7 +5,7 @@ export default function MenuPage() {
         {/* Menu Header */}
         <div className="text-center mb-12 relative">
           <div className="absolute inset-0 flex items-center justify-center opacity-5">
-            <div className="text-9xl">🌿</div>
+            <div className="text-9xl"></div>
           </div>
           <h1 className="text-6xl font-serif text-sky-900 mb-4 relative">
             Wedding Menu
@@ -15,6 +15,23 @@ export default function MenuPage() {
             Tori & Connor
           </p>
           <p className="text-lg text-gray-500">May 22, 2027</p>
+          <p className="text-sm text-gray-400 mt-2">Catered by Theo's Catering</p>
+        </div>
+
+        {/* Timeline */}
+        <div className="flex flex-wrap justify-center gap-6 mb-12 text-center">
+          {[
+            { time: "3:30 PM", label: "Ceremony" },
+            { time: "4:00 PM", label: "Cocktail Hour" },
+            { time: "5:00 PM", label: "Reception" },
+            { time: "5:30 PM", label: "Dinner" },
+            { time: "6:30 PM", label: "Cake Cutting" },
+          ].map((item) => (
+            <div key={item.label} className="bg-white rounded-lg shadow px-5 py-3 border border-sky-100">
+              <p className="text-lg font-semibold text-sky-900">{item.time}</p>
+              <p className="text-sm text-gray-500">{item.label}</p>
+            </div>
+          ))}
         </div>
 
         {/* Menu Content */}
@@ -27,49 +44,65 @@ export default function MenuPage() {
 
           {/* Appetizers */}
           <section className="mb-10">
-            <h2 className="text-3xl font-serif text-sky-900 mb-6 text-center border-b-2 border-sky-400 pb-2">
+            <h2 className="text-3xl font-serif text-sky-900 mb-2 text-center border-b-2 border-sky-400 pb-2">
               ~ Appetizers ~
             </h2>
-            <p className="text-center text-gray-600 italic mb-4">
-              Catering details coming soon
-            </p>
+            <p className="text-center text-gray-400 text-sm italic mb-6">Served during cocktail hour</p>
+            <div className="space-y-3 text-center">
+              <p className="text-lg text-gray-700">Cheese & Crackers</p>
+              <p className="text-lg text-gray-700">Fresh Fruit with Dip</p>
+              <p className="text-lg text-gray-700">Sliced Meats & Crackers</p>
+            </div>
           </section>
 
-          {/* Main Course */}
+          {/* Buffet Dinner */}
           <section className="mb-10">
-            <h2 className="text-3xl font-serif text-sky-900 mb-6 text-center border-b-2 border-sky-400 pb-2">
-              ~ Entrées ~
+            <h2 className="text-3xl font-serif text-sky-900 mb-2 text-center border-b-2 border-sky-400 pb-2">
+              ~ Buffet Dinner ~
             </h2>
-            <p className="text-center text-gray-600 italic mb-4">
-              Delicious main courses to be announced
-            </p>
+            <p className="text-center text-gray-400 text-sm italic mb-6">Served upstairs</p>
+            <div className="space-y-3 text-center">
+              <p className="text-lg text-gray-700 font-medium">Marry Me Chicken</p>
+              <p className="text-lg text-gray-700 font-medium">Penne Pasta with Marinara & Meatballs</p>
+            </div>
           </section>
 
           {/* Sides */}
           <section className="mb-10">
-            <h2 className="text-3xl font-serif text-sky-900 mb-6 text-center border-b-2 border-sky-400 pb-2">
+            <h2 className="text-3xl font-serif text-sky-900 mb-2 text-center border-b-2 border-sky-400 pb-2">
               ~ Accompaniments ~
             </h2>
-            <p className="text-center text-gray-600 italic mb-4">
-              Fresh seasonal sides
-            </p>
+            <div className="space-y-3 text-center">
+              <p className="text-lg text-gray-700">Signature Mashed Potatoes</p>
+              <p className="text-lg text-gray-700">Glazed Baby Carrots</p>
+              <p className="text-lg text-gray-700">Caribbean Blend Veggies</p>
+              <p className="text-lg text-gray-700">Family Style Salad with House Dressing</p>
+              <p className="text-lg text-gray-700">Rolls & Butter</p>
+            </div>
           </section>
 
           {/* Desserts */}
           <section className="mb-10">
-            <h2 className="text-3xl font-serif text-sky-900 mb-6 text-center border-b-2 border-sky-400 pb-2">
+            <h2 className="text-3xl font-serif text-sky-900 mb-2 text-center border-b-2 border-sky-400 pb-2">
               ~ Desserts ~
             </h2>
-            <p className="text-center text-gray-600 italic mb-4">
-              Sweet treats and wedding cake
-            </p>
+            <div className="space-y-3 text-center">
+              <p className="text-lg text-gray-700">Wedding Cake</p>
+              <p className="text-lg text-gray-700">Cupcakes & Cookies</p>
+            </div>
           </section>
 
           {/* Beverages */}
           <section className="mb-6">
-            <h2 className="text-3xl font-serif text-sky-900 mb-6 text-center border-b-2 border-sky-400 pb-2">
+            <h2 className="text-3xl font-serif text-sky-900 mb-2 text-center border-b-2 border-sky-400 pb-2">
               ~ Beverages ~
             </h2>
+            <div className="space-y-3 text-center mb-6">
+              <p className="text-lg text-gray-700">Iced Tea</p>
+              <p className="text-lg text-gray-700">Lemonade</p>
+              <p className="text-lg text-gray-700">Coffee & Decaf</p>
+              <p className="text-lg text-gray-700">Ice Water at Every Table</p>
+            </div>
             <div className="text-center space-y-3">
               <div className="bg-sky-50 p-4 rounded-lg border-l-4 border-sky-500 hover:shadow-lg transition-shadow duration-200">
                 <h3 className="text-xl font-semibold text-sky-900 mb-2">🍸 Open Bar</h3>
@@ -97,17 +130,7 @@ export default function MenuPage() {
             <p className="text-2xl text-sky-900 font-serif italic">
               ~ Bon Appétit ~
             </p>
-            <div className="flex justify-center items-center space-x-4 mt-4">
-              <div className="w-12 h-0.5 bg-sky-500"></div>
-              <span className="text-3xl">🌿</span>
-              <div className="w-12 h-0.5 bg-sky-500"></div>
-            </div>
           </div>
-        </div>
-
-        {/* Additional note */}
-        <div className="mt-8 text-center text-gray-600 italic">
-          <p>Menu selections will be updated as we finalize catering details</p>
         </div>
       </div>
     </main>

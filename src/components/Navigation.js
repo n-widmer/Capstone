@@ -21,9 +21,9 @@ export default function Navigation() {
       <div className="max-w-6xl mx-auto px-4 text-center">
         {/* Couple Names */}
         <p className="font-[family-name:var(--font-cormorant)] text-sm tracking-[0.2em] uppercase text-sky-800 mb-1">The Wedding of</p>
-        <h1 className="font-[family-name:var(--font-cormorant)] text-3xl md:text-4xl font-light tracking-[0.3em] uppercase text-sky-900 mb-2">
+        <Link href="/admin/login" className="font-[family-name:var(--font-cormorant)] text-3xl md:text-4xl font-light tracking-[0.3em] uppercase text-sky-900 mb-2 block no-underline hover:no-underline">
           Tori Campbell & Connor Quinn
-        </h1>
+        </Link>
 
         {/* Date & Location */}
         <p className="text-xs md:text-sm tracking-[0.2em] uppercase text-sky-800 mb-6">

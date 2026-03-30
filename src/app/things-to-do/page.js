@@ -81,33 +81,6 @@ export default function ThingsToDoPage() {
         },
       ],
     },
-    {
-      title: "Historical Sites",
-      description:
-        "Tuscarawas County is rich in history, from early American settlements to Amish heritage and beyond.",
-      items: [
-        {
-          name: "Schoenbrunn Village",
-          detail:
-            "Ohio's first settlement, a reconstructed 18th-century Moravian mission village with guided tours and living history.",
-        },
-        {
-          name: "Warther Museum",
-          detail:
-            "Home to Ernest 'Mooney' Warther's extraordinary hand-carved ivory and ebony steam engine collection, right in Dover.",
-        },
-        {
-          name: "Zoar Village",
-          detail:
-            "A National Historic Landmark featuring a restored 19th-century German separatist communal settlement with museums and gardens.",
-        },
-        {
-          name: "Trumpet in the Land",
-          detail:
-            "Ohio's official outdoor drama, performed at Schoenbrunn Amphitheatre, telling the story of the area's founding (seasonal).",
-        },
-      ],
-    },
   ];
 
   return (
