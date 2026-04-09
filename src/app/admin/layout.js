@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
@@ -16,6 +17,7 @@ const adminLinks = [
 
 export default function AdminLayout({ children }) {
   const pathname = usePathname();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   if (pathname === "/admin/login") {
     return children;
@@ -23,7 +25,28 @@ export default function AdminLayout({ children }) {
 
   return (
     <div className="min-h-screen flex bg-gray-50">
-      <aside className="w-64 bg-sky-900 text-white flex flex-col">
+      {/* Mobile sidebar toggle */}
+      <button
+        onClick={() => setSidebarOpen(!sidebarOpen)}
+        className="md:hidden fixed top-4 left-4 z-50 bg-sky-900 text-white p-2 rounded-lg shadow-lg"
+        aria-label="Toggle sidebar"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5M3.75 17.25h16.5" />
+        </svg>
+      </button>
+
+      {/* Backdrop */}
+      {sidebarOpen && (
+        <div
+          className="md:hidden fixed inset-0 z-30 bg-black/50"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
+      <aside className={`fixed inset-y-0 left-0 z-40 w-64 bg-sky-900 text-white flex flex-col transform transition-transform duration-300 ease-in-out ${
+        sidebarOpen ? "translate-x-0" : "-translate-x-full"
+      } md:relative md:translate-x-0`}>
         <div className="p-6 border-b border-sky-700">
           <h2 className="font-[family-name:var(--font-cormorant)] text-xl font-light tracking-wide">
             Wedding Admin
@@ -36,6 +59,7 @@ export default function AdminLayout({ children }) {
             <Link
               key={link.href}
               href={link.href}
+              onClick={() => setSidebarOpen(false)}
               className={`flex items-center gap-3 px-6 py-3 text-sm transition-colors ${
                 pathname === link.href
                   ? "bg-sky-800 text-white border-r-2 border-amber-400"
@@ -57,6 +81,7 @@ export default function AdminLayout({ children }) {
           </button>
           <Link
             href="/"
+            onClick={() => setSidebarOpen(false)}
             className="block mt-2 text-sm text-sky-400 hover:text-white transition-colors"
           >
             Back to Website
@@ -64,7 +89,7 @@ export default function AdminLayout({ children }) {
         </div>
       </aside>
 
-      <main className="flex-1 p-8">
+      <main className="flex-1 p-4 md:p-8">
         {children}
       </main>
     </div>

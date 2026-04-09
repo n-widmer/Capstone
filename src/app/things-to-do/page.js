@@ -38,19 +38,24 @@ export default function ThingsToDoPage() {
             "A local favorite for Italian-American cuisine, known for generous portions and a warm, family-friendly atmosphere.",
         },
         {
-          name: "Hog Heaven BBQ",
+          name: "Park Street Pizza",
           detail:
-            "Beloved barbecue spot serving up slow-smoked ribs, pulled pork, and all the classic sides.",
+            "A popular Dover pizzeria serving up hand-tossed pies, calzones, and subs in a casual, laid-back setting.",
         },
         {
-          name: "Buehler's Fresh Foods",
+          name: "Hoodletown Brewing Company",
           detail:
-            "A well-known local grocery and bakery chain, great for grabbing fresh deli sandwiches, baked goods, and snacks.",
+            "A craft brewery with a rotating tap list of locally brewed beers, great food, and a lively atmosphere perfect for a night out.",
         },
         {
-          name: "The Wallhouse Hotel Restaurant",
+          name: "Magoo's Pizza Pasta and More",
           detail:
-            "Upscale dining in a beautifully restored historic hotel in nearby Walnut Creek, featuring seasonal menus.",
+            "A family-friendly spot known for their pizza, pasta dishes, and hearty Italian-American comfort food.",
+        },
+        {
+          name: "J-N-G Grill",
+          detail:
+            "A local grill serving up burgers, sandwiches, and classic American fare with a hometown feel.",
         },
       ],
     },

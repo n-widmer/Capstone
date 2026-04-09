@@ -17,7 +17,7 @@ export default function RegistryPage() {
         <div className="grid md:grid-cols-2 gap-8 mb-12">
           {/* Amazon Registry */}
           <a
-            href="https://www.amazon.com/wedding/guest-view/B6T2KDY3A0GM"
+            href="https://www.amazon.com/wedding/guest-view/33DL72QMR1KES"
             target="_blank"
             rel="noopener noreferrer"
             className="bg-white rounded-xl shadow-lg border-2 border-sky-300 p-8 hover:shadow-2xl hover:-translate-y-1 transition-all duration-200 block cursor-pointer"

@@ -2,33 +2,7 @@
 
 import { useEffect, useRef, useCallback } from "react";
 
-// SVG tulip in different colors
-function TulipSVG({ color }) {
-  const colors = {
-    pink: { petal: "#f472b6", petalDark: "#ec4899", stem: "#16a34a" },
-    red: { petal: "#ef4444", petalDark: "#dc2626", stem: "#15803d" },
-    yellow: { petal: "#facc15", petalDark: "#eab308", stem: "#16a34a" },
-    white: { petal: "#fef9ef", petalDark: "#fde68a", stem: "#22c55e" },
-    purple: { petal: "#c084fc", petalDark: "#a855f7", stem: "#15803d" },
-  };
-
-  const c = colors[color] || colors.pink;
-
-  return (
-    <svg viewBox="0 0 40 80" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M20 35 Q18 55 20 75" stroke={c.stem} strokeWidth="2.5" strokeLinecap="round" fill="none" />
-      <path d="M19 50 Q10 45 8 52 Q10 56 18 53" fill={c.stem} opacity="0.8" />
-      <path d="M21 55 Q30 50 32 57 Q30 61 22 58" fill={c.stem} opacity="0.8" />
-      <ellipse cx="13" cy="20" rx="8" ry="16" fill={c.petalDark} transform="rotate(-15 13 20)" />
-      <ellipse cx="27" cy="20" rx="8" ry="16" fill={c.petalDark} transform="rotate(15 27 20)" />
-      <ellipse cx="16" cy="18" rx="7" ry="15" fill={c.petal} transform="rotate(-8 16 18)" />
-      <ellipse cx="24" cy="18" rx="7" ry="15" fill={c.petal} transform="rotate(8 24 18)" />
-      <ellipse cx="20" cy="16" rx="6" ry="14" fill={c.petal} opacity="0.9" />
-    </svg>
-  );
-}
-
-const TULIP_COLORS = ["pink", "red", "yellow", "white", "purple"];
+const TULIP_IMAGES = ["/tulips/WhiteTulip.png", "/tulips/YellowTulip.png", "/tulips/BlueTulip.png"];
 
 function generateTulips() {
   const viewportHeight = window.innerHeight;
@@ -48,7 +22,7 @@ function generateTulips() {
       rotationSpeed: (Math.random() - 0.5) * 0.15,
       startY: i < 10 ? Math.random() * viewportHeight * 0.8 : -(50 + Math.random() * 150),
       appearAtScroll,
-      color: TULIP_COLORS[Math.floor(Math.random() * TULIP_COLORS.length)],
+      image: TULIP_IMAGES[Math.floor(Math.random() * TULIP_IMAGES.length)],
       opacity: 0.3 + Math.random() * 0.4,
     };
   });
@@ -78,17 +52,13 @@ export default function FallingTulips() {
     }
   }, []);
 
-  // Generate tulips and set up scroll listener
   useEffect(() => {
-    // Generate fresh tulips every time the component mounts
     const tulips = generateTulips();
     tulipsRef.current = tulips;
 
-    // Build DOM directly for immediate rendering (no state delay)
     const container = containerRef.current;
     if (!container) return;
 
-    // Clear any old tulips
     container.innerHTML = "";
 
     tulips.forEach((t) => {
@@ -101,31 +71,11 @@ export default function FallingTulips() {
       div.style.opacity = t.appearAtScroll === 0 ? t.opacity : 0;
       div.style.transform = `translateY(${t.startY}px) rotate(${t.rotation}deg)`;
 
-      // Create SVG tulip
-      const colors = {
-        pink: { petal: "#f472b6", petalDark: "#ec4899", stem: "#16a34a" },
-        red: { petal: "#ef4444", petalDark: "#dc2626", stem: "#15803d" },
-        yellow: { petal: "#facc15", petalDark: "#eab308", stem: "#16a34a" },
-        white: { petal: "#fef9ef", petalDark: "#fde68a", stem: "#22c55e" },
-        purple: { petal: "#c084fc", petalDark: "#a855f7", stem: "#15803d" },
-      };
-      const c = colors[t.color] || colors.pink;
-
-      div.innerHTML = `<svg viewBox="0 0 40 80" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M20 35 Q18 55 20 75" stroke="${c.stem}" stroke-width="2.5" stroke-linecap="round" fill="none"/>
-        <path d="M19 50 Q10 45 8 52 Q10 56 18 53" fill="${c.stem}" opacity="0.8"/>
-        <path d="M21 55 Q30 50 32 57 Q30 61 22 58" fill="${c.stem}" opacity="0.8"/>
-        <ellipse cx="13" cy="20" rx="8" ry="16" fill="${c.petalDark}" transform="rotate(-15 13 20)"/>
-        <ellipse cx="27" cy="20" rx="8" ry="16" fill="${c.petalDark}" transform="rotate(15 27 20)"/>
-        <ellipse cx="16" cy="18" rx="7" ry="15" fill="${c.petal}" transform="rotate(-8 16 18)"/>
-        <ellipse cx="24" cy="18" rx="7" ry="15" fill="${c.petal}" transform="rotate(8 24 18)"/>
-        <ellipse cx="20" cy="16" rx="6" ry="14" fill="${c.petal}" opacity="0.9"/>
-      </svg>`;
+      div.innerHTML = `<img src="${t.image}" alt="" style="width:100%;height:100%;object-fit:contain;" />`;
 
       container.appendChild(div);
     });
 
-    // Scroll handler
     function onScroll() {
       if (rafId.current) return;
       rafId.current = requestAnimationFrame(() => {
@@ -135,7 +85,6 @@ export default function FallingTulips() {
     }
 
     window.addEventListener("scroll", onScroll, { passive: true });
-    // Run once immediately to position based on current scroll
     updatePositions();
 
     return () => {
