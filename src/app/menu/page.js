@@ -7,7 +7,7 @@ export default function MenuPage() {
           <div className="absolute inset-0 flex items-center justify-center opacity-5">
             <div className="text-9xl"></div>
           </div>
-          <h1 className="text-6xl font-serif text-sky-900 mb-4 relative">
+          <h1 className="text-4xl md:text-6xl font-serif text-sky-900 mb-4 relative">
             Wedding Menu
           </h1>
           <div className="w-32 h-1 bg-sky-600 mx-auto mb-4"></div>

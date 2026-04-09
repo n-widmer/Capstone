@@ -92,7 +92,7 @@ describe("Things To Do Page", () => {
   it("renders restaurant items", () => {
     render(<ThingsToDoPage />);
     expect(screen.getByText("Uncle Primo's")).toBeInTheDocument();
-    expect(screen.getByText("Hog Heaven BBQ")).toBeInTheDocument();
+    expect(screen.getByText("Park Street Pizza")).toBeInTheDocument();
   });
 
   it("renders venue address", () => {
@@ -105,7 +105,7 @@ describe("Registry Page", () => {
   it("renders Amazon registry link with correct URL", () => {
     render(<RegistryPage />);
     const amazonLink = screen.getByText("Shop on Amazon").closest("a");
-    expect(amazonLink).toHaveAttribute("href", "https://www.amazon.com/wedding/guest-view/B6T2KDY3A0GM");
+    expect(amazonLink).toHaveAttribute("href", "https://www.amazon.com/wedding/guest-view/33DL72QMR1KES");
     expect(amazonLink).toHaveAttribute("target", "_blank");
   });
 
