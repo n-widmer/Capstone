@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
-export default function AccessPage() {
+function AccessPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -93,5 +93,13 @@ export default function AccessPage() {
         </div>
       </div>
     </main>
+  );
+}
+
+export default function AccessPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><p>Loading...</p></div>}>
+      <AccessPageContent />
+    </Suspense>
   );
 }
