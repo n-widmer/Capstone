@@ -3,7 +3,11 @@ import pool from "@/lib/db";
 
 function escapeCSV(value) {
   if (value === null || value === undefined) return "";
-  const str = String(value);
+  let str = String(value);
+  // Prevent CSV formula injection
+  if (/^[=+\-@\t\r]/.test(str)) {
+    str = "'" + str;
+  }
   if (str.includes(",") || str.includes('"') || str.includes("\n")) {
     return `"${str.replace(/"/g, '""')}"`;
   }
@@ -104,13 +108,34 @@ async function exportSongs(conn) {
   return csvResponse([header, ...data], "song_requests.csv");
 }
 
+async function exportGifts(conn) {
+  const [rows] = await conn.execute(
+    `SELECT guest_name, gift_type, description, amount, thank_you_sent, notes
+     FROM gifts
+     ORDER BY guest_name, created_at DESC`
+  );
+
+  const header = ["Guest Name", "Type", "Description", "Amount", "Thank You Sent", "Notes"];
+
+  const data = rows.map((r) => [
+    r.guest_name,
+    r.gift_type,
+    r.description || "",
+    r.amount ? Number(r.amount).toFixed(2) : "",
+    Number(r.thank_you_sent) === 1 ? "Yes" : "No",
+    r.notes || "",
+  ]);
+
+  return csvResponse([header, ...data], "gifts.csv");
+}
+
 export async function GET(request) {
   const { searchParams } = new URL(request.url);
   const type = searchParams.get("type");
 
-  if (!type || !["guests", "dietary", "songs"].includes(type)) {
+  if (!type || !["guests", "dietary", "songs", "gifts"].includes(type)) {
     return NextResponse.json(
-      { error: 'Invalid type. Use ?type=guests, ?type=dietary, or ?type=songs' },
+      { error: 'Invalid type. Use ?type=guests, ?type=dietary, ?type=songs, or ?type=gifts' },
       { status: 400 }
     );
   }
@@ -124,10 +149,13 @@ export async function GET(request) {
         return await exportDietary(conn);
       case "songs":
         return await exportSongs(conn);
+      case "gifts":
+        return await exportGifts(conn);
     }
   } catch (e) {
+    console.error("[export] error:", e);
     return NextResponse.json(
-      { error: String(e?.message || e) },
+      { error: "Export failed" },
       { status: 500 }
     );
   } finally {

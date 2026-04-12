@@ -50,3 +50,15 @@ CREATE TABLE IF NOT EXISTS photos (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (uploaded_by_group_id) REFERENCES `groups`(group_id)
 );
+
+-- Gifts / cards tracker
+CREATE TABLE IF NOT EXISTS gifts (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  guest_name VARCHAR(200) NOT NULL,
+  gift_type ENUM('gift', 'card', 'cash') DEFAULT 'gift',
+  description VARCHAR(500),
+  amount DECIMAL(10,2),
+  thank_you_sent BOOLEAN DEFAULT FALSE,
+  notes VARCHAR(500),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
