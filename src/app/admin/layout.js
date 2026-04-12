@@ -11,6 +11,7 @@ const adminLinks = [
   { href: "/admin/songs", label: "Song Requests", icon: "🎵" },
   { href: "/admin/photos", label: "Photos", icon: "📸" },
   { href: "/admin/budget", label: "Budget", icon: "💰" },
+  { href: "/admin/gifts", label: "Gifts", icon: "🎁" },
   { href: "/admin/export", label: "Export Data", icon: "📥" },
 ];
 
