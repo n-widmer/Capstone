@@ -163,7 +163,7 @@ export default function AccommodationsPage() {
 
         {/* Airbnb Listings */}
         {embeds.length > 0 && (
-          <div className="flex flex-col md:flex-row justify-center items-center gap-8 mb-16">
+          <div className="flex flex-wrap justify-center items-start gap-8 mb-16">
             {embeds.map((embed) => (
               <div key={embed.id} className="flex flex-col items-center gap-4 w-full md:w-auto">
                 {/* Responsive wrapper — clips the fixed-size embed on small screens */}
@@ -199,12 +199,6 @@ export default function AccommodationsPage() {
           </div>
         )}
 
-        {/* Footer Note */}
-        <div className="text-center mt-4 mb-4">
-          <p className="text-sky-800/50 text-sm italic">
-            We recommend booking early as availability may be limited around the wedding date.
-          </p>
-        </div>
 
       </div>
 
