@@ -100,6 +100,28 @@ CREATE TABLE IF NOT EXISTS admin_sessions (
     INDEX idx_expires_at (expires_at)
 );
 
+-- Lodging listings shown on the accommodations page
+CREATE TABLE IF NOT EXISTS lodging_embeds (
+    id            INT AUTO_INCREMENT PRIMARY KEY,
+    embed_id      VARCHAR(255) NOT NULL UNIQUE,
+    label         VARCHAR(255) DEFAULT NULL,
+    display_order INT DEFAULT 0,
+    created_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Lodging reservations — tracks which family is staying at each listing
+CREATE TABLE IF NOT EXISTS lodging_reservations (
+    id               INT AUTO_INCREMENT PRIMARY KEY,
+    lodging_embed_id INT NOT NULL,
+    group_id         INT NOT NULL,
+    guest_ids        JSON NOT NULL,
+    created_at       TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY uq_embed (lodging_embed_id),
+    UNIQUE KEY uq_group (group_id),
+    FOREIGN KEY (lodging_embed_id) REFERENCES lodging_embeds(id) ON DELETE CASCADE,
+    FOREIGN KEY (group_id) REFERENCES `groups`(group_id) ON DELETE CASCADE
+);
+
 -- Store donations and guest messages/well-wishes
 CREATE TABLE IF NOT EXISTS wishing_well_messages (
     message_id INT AUTO_INCREMENT PRIMARY KEY,

@@ -16,6 +16,7 @@ export default function Navigation() {
     { href: "/registry", label: "Registry" },
     { href: "/photos", label: "Photos" },
     { href: "/things-to-do", label: "Things To Do" },
+    { href: "/accommodations", label: "Lodging" },
     { href: "/playlist", label: "Playlist" },
   ];
 
