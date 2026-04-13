@@ -101,7 +101,7 @@ export default function AdminPhotosPage() {
               >
                 <div className="aspect-square relative">
                   <img
-                    src={`/gallery/${photo.filename}`}
+                    src={`/api/photos/${photo.id}/image`}
                     alt={photo.caption || "Pending photo"}
                     className="w-full h-full object-cover"
                     loading="lazy"
@@ -158,7 +158,7 @@ export default function AdminPhotosPage() {
               >
                 <div className="aspect-square relative">
                   <img
-                    src={`/gallery/${photo.filename}`}
+                    src={`/api/photos/${photo.id}/image`}
                     alt={photo.caption || "Approved photo"}
                     className="w-full h-full object-cover"
                     loading="lazy"
