@@ -21,13 +21,16 @@ export async function middleware(req) {
     return NextResponse.next();
   }
 
-  // guest access protection
+  // guest access protection — skip static assets and public routes
+  const isStaticFile = /\.(jpg|jpeg|png|gif|svg|webp|ico|woff2?|ttf|eot|mp4|webm)$/i.test(path);
   if (
+    isStaticFile ||
     path.startsWith("/_next") ||
     path === "/favicon.ico" ||
     path.startsWith("/api") || // let API routes handle their own auth (including /api/groups, /api/rsvp)
     path === "/access" ||      // access code entry page
-    path.startsWith("/admin")
+    path.startsWith("/admin") ||
+    path.startsWith("/tulips")  // public tulip images
   ) {
     return NextResponse.next();
   }

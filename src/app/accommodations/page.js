@@ -26,7 +26,7 @@ export default function AccommodationsPage() {
   }
 
   useEffect(() => {
-    fetch("/api/admin/lodging")
+    fetch("/api/lodging")
       .then((res) => res.json())
       .then((data) => {
         if (data.ok) {
