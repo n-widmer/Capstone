@@ -31,7 +31,7 @@ function AccessPageContent() {
       return;
     }
 
-    router.replace(next);
+    window.location.assign(next)
   }
 
   return (
