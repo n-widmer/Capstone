@@ -1,6 +1,4 @@
 import { NextResponse } from "next/server";
-import { writeFile, mkdir } from "fs/promises";
-import path from "path";
 import pool from "@/lib/db";
 
 const ALLOWED_TYPES = {
@@ -75,23 +73,17 @@ export async function POST(req) {
 
     const groupId = groups[0].group_id;
 
-    // Generate unique filename
+    // Generate unique filename (kept for reference)
     const random = Math.random().toString(36).slice(2, 10);
     const filename = `${Date.now()}-${random}.${ext}`;
 
-    // Ensure gallery directory exists
-    const galleryDir = path.join(process.cwd(), "public", "gallery");
-    await mkdir(galleryDir, { recursive: true });
-
-    // Write file to disk
+    // Read file into buffer and store in database
     const buffer = Buffer.from(await file.arrayBuffer());
-    await writeFile(path.join(galleryDir, filename), buffer);
 
-    // Insert into database
     await conn.execute(
-      `INSERT INTO photos (filename, uploaded_by_group_id, caption, category, approved, created_at)
-       VALUES (?, ?, ?, 'guest', FALSE, NOW())`,
-      [filename, groupId, caption || null]
+      `INSERT INTO photos (filename, uploaded_by_group_id, caption, category, approved, created_at, image_data, mime_type)
+       VALUES (?, ?, ?, 'guest', FALSE, NOW(), ?, ?)`,
+      [filename, groupId, caption || null, buffer, file.type]
     );
 
     return NextResponse.json({ ok: true, filename });

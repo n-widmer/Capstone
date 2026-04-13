@@ -1,6 +1,4 @@
 import { NextResponse } from "next/server";
-import { unlink } from "fs/promises";
-import path from "path";
 import pool from "@/lib/db";
 
 // PATCH /api/admin/photos — { photo_id, action: "approve"|"reject" }
@@ -40,30 +38,17 @@ export async function PATCH(req) {
       return NextResponse.json({ ok: true });
     }
 
-    // action === "reject"
-    const [photos] = await conn.execute(
-      `SELECT filename FROM photos WHERE id = ? LIMIT 1`,
+    // action === "reject" — delete from database (image data is stored in the row)
+    const [result] = await conn.execute(
+      `DELETE FROM photos WHERE id = ?`,
       [photo_id]
     );
 
-    if (!photos.length) {
+    if (result.affectedRows === 0) {
       return NextResponse.json(
         { ok: false, error: "Photo not found" },
         { status: 404 }
       );
-    }
-
-    const filename = photos[0].filename;
-
-    // Delete from database
-    await conn.execute(`DELETE FROM photos WHERE id = ?`, [photo_id]);
-
-    // Delete file from disk
-    try {
-      const filePath = path.join(process.cwd(), "public", "gallery", filename);
-      await unlink(filePath);
-    } catch {
-      // File may already be missing — not critical
     }
 
     return NextResponse.json({ ok: true });
