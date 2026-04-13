@@ -45,6 +45,33 @@ export default function AccommodationsPage() {
     }
   }, [embeds]);
 
+  // scale fixed-size Airbnb embeds to fit their container on any screen size
+  useEffect(() => {
+    if (embeds.length === 0) return;
+    const wrappers = document.querySelectorAll("[data-embed-scale]");
+    const fit = (wrapper) => {
+      const nativeW = Number(wrapper.dataset.nativeW);
+      const nativeH = Number(wrapper.dataset.nativeH);
+      const inner = wrapper.firstElementChild;
+      const parent = wrapper.parentElement;
+      if (!inner || !parent) return;
+      const available = parent.clientWidth;
+      const scale = Math.min(1, available / nativeW);
+      inner.style.transform = `scale(${scale})`;
+      inner.style.transformOrigin = "top left";
+      wrapper.style.width = `${nativeW * scale}px`;
+      wrapper.style.height = `${nativeH * scale}px`;
+    };
+    const observers = [];
+    wrappers.forEach((w) => {
+      fit(w);
+      const ro = new ResizeObserver(() => fit(w));
+      if (w.parentElement) ro.observe(w.parentElement);
+      observers.push(ro);
+    });
+    return () => observers.forEach((o) => o.disconnect());
+  }, [embeds]);
+
   // open the modal for a specific listing
   function openReserve(embed) {
     setReservingEmbed(embed);
@@ -56,24 +83,44 @@ export default function AccommodationsPage() {
     setSubmitSuccess(false);
   }
 
-  function closeModal(markReserved = false) {
-    if (markReserved && reservingEmbed) {
+  // Called only by Cancel — never modifies reservedEmbedIds
+  function cancelModal() {
+    setReservingEmbed(null);
+  }
+
+  // Called only by Done after a successful reservation
+  function completeReservation() {
+    if (reservingEmbed) {
       setReservedEmbedIds((prev) => new Set([...prev, reservingEmbed.id]));
     }
     setReservingEmbed(null);
   }
 
-  // look up family by access code
+  // look up family by access code and check if they already have a reservation
   async function lookupCode() {
     setCodeError(null);
     setLoadingGroup(true);
     try {
-      const res = await fetch(`/api/groups?code=${encodeURIComponent(accessCode.trim())}`);
-      const json = await res.json();
+      const [groupRes, checkRes] = await Promise.all([
+        fetch(`/api/groups?code=${encodeURIComponent(accessCode.trim())}`),
+        fetch(`/api/lodging/check?code=${encodeURIComponent(accessCode.trim())}`),
+      ]);
+      const json = await groupRes.json();
+      const check = await checkRes.json();
+
       if (!json.ok) {
         setCodeError(json.error || "Invalid access code");
         return;
       }
+      if (!check.ok) {
+        setCodeError(check.error || "Could not verify reservation status. Please try again.");
+        return;
+      }
+      if (check.hasReservation) {
+        setCodeError("Your family already has a reservation at one of the listings.");
+        return;
+      }
+
       setGroup(json);
       // select all members by default
       setSelectedIds(json.members.map((m) => m.user_id));
@@ -163,17 +210,22 @@ export default function AccommodationsPage() {
 
         {/* Airbnb Listings */}
         {embeds.length > 0 && (
-          <div className="flex flex-wrap justify-center items-start gap-8 mb-16">
+          <div className="flex flex-wrap justify-center items-center gap-8 mb-16">
             {embeds.map((embed) => (
               <div key={embed.id} className="flex flex-col items-center gap-4 w-full md:w-auto">
-                {/* Responsive wrapper — clips the fixed-size embed on small screens */}
-                <div className="overflow-hidden rounded-lg w-full" style={{ maxWidth: "450px" }}>
+                {/* Responsive wrapper — JS scales the fixed-size embed to fit */}
+                <div
+                  data-embed-scale
+                  data-native-w="450"
+                  data-native-h="430"
+                  className="rounded-lg overflow-hidden mx-auto"
+                >
                   <div
                     className="airbnb-embed-frame"
                     data-id={embed.embed_id}
                     data-view="home"
                     data-hide-price="true"
-                    style={{ width: "450px", height: "300px" }}
+                    style={{ width: "450px", height: "430px" }}
                   >
                     <a href={`https://www.airbnb.com/rooms/${embed.embed_id}`}>
                       View On Airbnb
@@ -224,7 +276,7 @@ export default function AccommodationsPage() {
                     We&apos;ve noted that the <strong>{group?.group?.family_name}</strong> family will be staying at this listing.
                   </p>
                   <button
-                    onClick={() => closeModal(true)}
+                    onClick={completeReservation}
                     className="cursor-pointer rounded-lg bg-sky-800 px-8 py-3 text-sm font-bold text-white hover:bg-sky-900 transition-colors"
                   >
                     Done
@@ -270,7 +322,7 @@ export default function AccommodationsPage() {
                     </button>
 
                     <button
-                      onClick={closeModal}
+                      onClick={cancelModal}
                       className="cursor-pointer w-full rounded-lg border border-gray-300 px-6 py-3 text-sm text-gray-600 hover:bg-gray-50 transition-colors"
                     >
                       Cancel
@@ -328,7 +380,7 @@ export default function AccommodationsPage() {
                   </div>
 
                   <button
-                    onClick={closeModal}
+                    onClick={cancelModal}
                     className="cursor-pointer w-full mt-3 text-sm text-gray-400 hover:text-gray-600 transition-colors"
                   >
                     Cancel

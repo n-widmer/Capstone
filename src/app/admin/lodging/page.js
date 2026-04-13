@@ -53,6 +53,33 @@ export default function AdminLodgingPage() {
     }
   }, [embeds]);
 
+  // Scale fixed-size Airbnb embeds to fit their container on any screen size
+  useEffect(() => {
+    if (embeds.length === 0) return;
+    const wrappers = document.querySelectorAll("[data-embed-scale]");
+    const fit = (wrapper) => {
+      const nativeW = Number(wrapper.dataset.nativeW);
+      const nativeH = Number(wrapper.dataset.nativeH);
+      const inner = wrapper.firstElementChild;
+      const parent = wrapper.parentElement;
+      if (!inner || !parent) return;
+      const available = parent.clientWidth;
+      const scale = Math.min(1, available / nativeW);
+      inner.style.transform = `scale(${scale})`;
+      inner.style.transformOrigin = "top left";
+      wrapper.style.width = `${nativeW * scale}px`;
+      wrapper.style.height = `${nativeH * scale}px`;
+    };
+    const observers = [];
+    wrappers.forEach((w) => {
+      fit(w);
+      const ro = new ResizeObserver(() => fit(w));
+      if (w.parentElement) ro.observe(w.parentElement);
+      observers.push(ro);
+    });
+    return () => observers.forEach((o) => o.disconnect());
+  }, [embeds]);
+
   async function handleSubmit(e) {
     e.preventDefault();
     setSubmitting(true);
@@ -241,15 +268,20 @@ export default function AdminLodgingPage() {
                   key={embed.id}
                   className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden"
                 >
-                  {/* Airbnb embed — responsive wrapper clips on small screens */}
+                  {/* Airbnb embed — responsive wrapper scales to fit */}
                   <div className="p-3">
-                    <div className="overflow-hidden rounded-lg mx-auto" style={{ width: "350px" }}>
+                    <div
+                      data-embed-scale
+                      data-native-w="350"
+                      data-native-h="390"
+                      className="rounded-lg mx-auto overflow-hidden"
+                    >
                       <div
                         className="airbnb-embed-frame"
                         data-id={embed.embed_id}
                         data-view="home"
                         data-hide-price="true"
-                        style={{ width: "350px", height: "230px" }}
+                        style={{ width: "350px", height: "390px" }}
                       >
                         <a href={`https://www.airbnb.com/rooms/${embed.embed_id}`}>
                           View on Airbnb

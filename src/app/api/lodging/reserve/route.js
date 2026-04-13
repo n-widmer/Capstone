@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import pool from "@/lib/db";
 
 // POST — submit a lodging reservation
+// Body: { access_code, lodging_embed_id, guest_ids: [user_id, ...] }
 export async function POST(req) {
   const body = await req.json().catch(() => null);
   if (!body) return NextResponse.json({ ok: false, error: "Invalid request" }, { status: 400 });
@@ -25,12 +26,21 @@ export async function POST(req) {
     }
     const { group_id } = groups[0];
 
-    // block if any group has already reserved this listing
-    const [existing] = await conn.execute(
+    // block if this family has already reserved any listing
+    const [familyExisting] = await conn.execute(
+      `SELECT id FROM lodging_reservations WHERE group_id = ? LIMIT 1`,
+      [group_id]
+    );
+    if (familyExisting.length) {
+      return NextResponse.json({ ok: false, error: "Your family has already reserved a listing" }, { status: 409 });
+    }
+
+    // block if another group has already reserved this listing
+    const [listingExisting] = await conn.execute(
       `SELECT group_id FROM lodging_reservations WHERE lodging_embed_id = ? LIMIT 1`,
       [lodging_embed_id]
     );
-    if (existing.length) {
+    if (listingExisting.length) {
       return NextResponse.json({ ok: false, error: "This listing has already been reserved" }, { status: 409 });
     }
 
@@ -42,6 +52,12 @@ export async function POST(req) {
 
     return NextResponse.json({ ok: true });
   } catch (e) {
+    if (e?.code === "ER_DUP_ENTRY") {
+      return NextResponse.json(
+        { ok: false, error: "This listing is no longer available" },
+        { status: 409 }
+      );
+    }
     return NextResponse.json({ ok: false, error: String(e?.message || e) }, { status: 500 });
   } finally {
     conn.release();

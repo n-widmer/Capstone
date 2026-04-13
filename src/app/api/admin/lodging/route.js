@@ -7,9 +7,8 @@ export async function GET() {
   try {
     const [rows] = await conn.execute(
       `SELECT e.id, e.embed_id, e.label, e.display_order,
-              CASE WHEN lr.lodging_embed_id IS NOT NULL THEN 1 ELSE 0 END AS is_reserved
+              EXISTS(SELECT 1 FROM lodging_reservations lr WHERE lr.lodging_embed_id = e.id) AS is_reserved
        FROM lodging_embeds e
-       LEFT JOIN lodging_reservations lr ON lr.lodging_embed_id = e.id
        ORDER BY e.display_order ASC, e.created_at ASC`
     );
     return NextResponse.json({ ok: true, embeds: rows });
@@ -35,6 +34,13 @@ export async function POST(req) {
 
   const conn = await pool.getConnection();
   try {
+    const [existing] = await conn.execute(
+      `SELECT id FROM lodging_embeds WHERE embed_id = ? LIMIT 1`,
+      [embed_id]
+    );
+    if (existing.length) {
+      return NextResponse.json({ ok: false, error: "This Airbnb listing has already been added" }, { status: 409 });
+    }
     await conn.execute(
       `INSERT INTO lodging_embeds (embed_id, label) VALUES (?, ?)`,
       [embed_id, label || null]
@@ -54,6 +60,8 @@ export async function DELETE(req) {
 
   const conn = await pool.getConnection();
   try {
+    // remove any reservation first, then the listing
+    await conn.execute(`DELETE FROM lodging_reservations WHERE lodging_embed_id = ?`, [id]);
     await conn.execute(`DELETE FROM lodging_embeds WHERE id = ?`, [id]);
     return NextResponse.json({ ok: true });
   } catch (e) {
