@@ -45,32 +45,6 @@ export default function AccommodationsPage() {
     }
   }, [embeds]);
 
-  // scale fixed-size Airbnb embeds to fit their container on any screen size
-  useEffect(() => {
-    if (embeds.length === 0) return;
-    const wrappers = document.querySelectorAll("[data-embed-scale]");
-    const fit = (wrapper) => {
-      const nativeW = Number(wrapper.dataset.nativeW);
-      const nativeH = Number(wrapper.dataset.nativeH);
-      const inner = wrapper.firstElementChild;
-      const parent = wrapper.parentElement;
-      if (!inner || !parent) return;
-      const available = parent.clientWidth;
-      const scale = Math.min(1, available / nativeW);
-      inner.style.transform = `scale(${scale})`;
-      inner.style.transformOrigin = "top left";
-      wrapper.style.width = `${nativeW * scale}px`;
-      wrapper.style.height = `${nativeH * scale}px`;
-    };
-    const observers = [];
-    wrappers.forEach((w) => {
-      fit(w);
-      const ro = new ResizeObserver(() => fit(w));
-      if (w.parentElement) ro.observe(w.parentElement);
-      observers.push(ro);
-    });
-    return () => observers.forEach((o) => o.disconnect());
-  }, [embeds]);
 
   // open the modal for a specific listing
   function openReserve(embed) {
@@ -210,22 +184,24 @@ export default function AccommodationsPage() {
 
         {/* Airbnb Listings */}
         {embeds.length > 0 && (
-          <div className="flex flex-wrap justify-center items-center gap-8 mb-16">
+          <div className="flex flex-wrap justify-center items-start gap-8 mb-16">
             {embeds.map((embed) => (
-              <div key={embed.id} className="flex flex-col items-center gap-4 w-full md:w-auto">
-                {/* Responsive wrapper — JS scales the fixed-size embed to fit */}
+              <div
+                key={embed.id}
+                className="bg-white rounded-2xl shadow-lg border border-sky-100 flex flex-col"
+                style={{ width: "min(450px, 100vw - 2rem)" }}
+              >
+                {/* Embed — fixed native size, clipped to card width on narrow screens */}
                 <div
-                  data-embed-scale
-                  data-native-w="450"
-                  data-native-h="430"
-                  className="rounded-lg overflow-hidden mx-auto"
+                  className="overflow-hidden rounded-t-2xl"
+                  style={{ height: "450px" }}
                 >
                   <div
                     className="airbnb-embed-frame"
                     data-id={embed.embed_id}
                     data-view="home"
                     data-hide-price="true"
-                    style={{ width: "450px", height: "430px" }}
+                    style={{ width: "450px", height: "450px" }}
                   >
                     <a href={`https://www.airbnb.com/rooms/${embed.embed_id}`}>
                       View On Airbnb
@@ -233,19 +209,20 @@ export default function AccommodationsPage() {
                   </div>
                 </div>
 
-                {/* Reserve button — greyed out once reserved */}
-                <button
-                  onClick={() => !reservedEmbedIds.has(embed.id) && openReserve(embed)}
-                  disabled={reservedEmbedIds.has(embed.id)}
-                  className={`w-full rounded-lg px-8 py-3 text-sm font-semibold transition-all duration-200 shadow-md ${
-                    reservedEmbedIds.has(embed.id)
-                      ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-                      : "cursor-pointer bg-sky-800 text-white hover:bg-sky-900 hover:scale-[1.02]"
-                  }`}
-                  style={{ maxWidth: "450px" }}
-                >
-                  {reservedEmbedIds.has(embed.id) ? "Reserved" : "Reserve This Listing"}
-                </button>
+                {/* Reserve button inside the card */}
+                <div className="p-4">
+                  <button
+                    onClick={() => !reservedEmbedIds.has(embed.id) && openReserve(embed)}
+                    disabled={reservedEmbedIds.has(embed.id)}
+                    className={`w-full rounded-lg px-8 py-3 text-sm font-semibold transition-all duration-200 shadow-md ${
+                      reservedEmbedIds.has(embed.id)
+                        ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+                        : "cursor-pointer bg-sky-800 text-white hover:bg-sky-900 hover:scale-[1.02]"
+                    }`}
+                  >
+                    {reservedEmbedIds.has(embed.id) ? "Reserved" : "Reserve This Listing"}
+                  </button>
+                </div>
               </div>
             ))}
           </div>
