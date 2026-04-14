@@ -25,8 +25,8 @@ export default function RegistryPage() {
             className="bg-white rounded-xl shadow-lg border-2 border-sky-300 p-8 hover:shadow-2xl hover:-translate-y-1 transition-all duration-200 block cursor-pointer"
           >
             <div className="text-center">
-              <div className="w-24 h-24 bg-amber-50 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Image src="/logos/amazon.svg" alt="Amazon Logo" width={96} height={96} className="rounded-full" />
+              <div className="relative w-16 h-16 md:w-24 md:h-24 bg-amber-50 rounded-full mx-auto mb-4 overflow-hidden">
+                <Image src="/logos/amazon.svg" alt="Amazon Logo" fill className="object-contain p-2" />
               </div>
               <h2 className="text-2xl font-serif text-sky-900 mb-3">
                 Amazon Registry
@@ -48,8 +48,8 @@ export default function RegistryPage() {
             className="bg-white rounded-xl shadow-lg border-2 border-sky-300 p-8 hover:shadow-2xl hover:-translate-y-1 transition-all duration-200 block cursor-pointer"
           >
             <div className="text-center">
-              <div className="w-24 h-24 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Image src="/logos/walmart.svg" alt="Walmart Logo" width={96} height={96} className="rounded-full" />
+              <div className="relative w-16 h-16 md:w-24 md:h-24 bg-blue-50 rounded-full mx-auto mb-4 overflow-hidden">
+                <Image src="/logos/walmart.svg" alt="Walmart Logo" fill className="object-contain p-2" />
               </div>
               <h2 className="text-2xl font-serif text-sky-900 mb-3">
                 Walmart Registry
@@ -65,21 +65,24 @@ export default function RegistryPage() {
         </div>
 
         {/* Cash Fund Option */}
-        <div className="bg-white rounded-xl shadow-lg border-2 border-sky-400 p-8 mb-8">
+        <a
+          href="https://paypal.com/donate/buttons/manage/unhosted?status=SUCCESS"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="bg-white rounded-xl shadow-lg border-2 border-sky-400 p-8 mb-8 hover:shadow-2xl hover:-translate-y-1 transition-all duration-200 block cursor-pointer"
+        >
           <div className="text-center">
             <div className="w-20 h-20 bg-sky-100 rounded-full flex items-center justify-center mx-auto mb-4 shadow-md">
               <span className="text-4xl">🏠</span>
             </div>
             <h2 className="text-2xl font-serif text-sky-900 mb-3">
-              <a href="https://paypal.com/donate/buttons/manage/unhosted?status=SUCCESS" target="_blank" rel="noopener noreferrer" className="hover:underline">
-                House Fund
-              </a>
+              House Fund
             </h2>
             <p className="text-gray-700 max-w-2xl mx-auto mb-4">
               If you'd prefer to contribute to our new home, we'd be incredibly grateful. Details coming soon!
             </p>
           </div>
-        </div>
+        </a>
 
         {/* Thank You Note */}
         <div className="text-center bg-white rounded-lg shadow-md p-8 border-l-4 border-sky-500">
