@@ -101,7 +101,7 @@ export default function AdminPhotosPage() {
               >
                 <div className="aspect-square relative">
                   <img
-                    src={`/gallery/${photo.filename}`}
+                    src={`/api/photos/${photo.id}/image`}
                     alt={photo.caption || "Pending photo"}
                     className="w-full h-full object-cover"
                     loading="lazy"
@@ -158,7 +158,7 @@ export default function AdminPhotosPage() {
               >
                 <div className="aspect-square relative">
                   <img
-                    src={`/gallery/${photo.filename}`}
+                    src={`/api/photos/${photo.id}/image`}
                     alt={photo.caption || "Approved photo"}
                     className="w-full h-full object-cover"
                     loading="lazy"
@@ -170,9 +170,20 @@ export default function AdminPhotosPage() {
                       {photo.caption}
                     </p>
                   )}
-                  <p className="text-xs text-gray-400">
+                  <p className="text-xs text-gray-400 mb-3">
                     by {photo.uploaded_by} &middot; {photo.category}
                   </p>
+                  <button
+                    onClick={() => {
+                      if (confirm("Remove this photo? This cannot be undone.")) {
+                        handleAction(photo.id, "reject");
+                      }
+                    }}
+                    disabled={actionLoading === photo.id}
+                    className="w-full cursor-pointer rounded-lg bg-red-600 px-3 py-2 text-xs font-bold text-white hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Remove
+                  </button>
                 </div>
               </div>
             ))}

@@ -218,7 +218,7 @@ export default function PhotoGalleryPage() {
                 onClick={() => setLightbox(photo)}
               >
                 <img
-                  src={`/gallery/${photo.filename}`}
+                  src={`/api/photos/${photo.id}/image`}
                   alt={photo.caption || "Wedding photo"}
                   className="w-full block"
                   loading="lazy"
@@ -259,7 +259,7 @@ export default function PhotoGalleryPage() {
               onClick={(e) => e.stopPropagation()}
             >
               <img
-                src={`/gallery/${lightbox.filename}`}
+                src={`/api/photos/${lightbox.id}/image`}
                 alt={lightbox.caption || "Wedding photo"}
                 className="max-w-full max-h-[85vh] object-contain rounded-lg"
               />
