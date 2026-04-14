@@ -1,3 +1,5 @@
+import Image from 'next/image';
+
 export default function RegistryPage() {
   return (
     <main className="min-h-screen py-12">
@@ -24,7 +26,7 @@ export default function RegistryPage() {
           >
             <div className="text-center">
               <div className="w-24 h-24 bg-amber-50 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-5xl font-bold text-amber-600">a</span>
+                <Image src="/logos/amazon.svg" alt="Amazon Logo" width={96} height={96} className="rounded-full" />
               </div>
               <h2 className="text-2xl font-serif text-sky-900 mb-3">
                 Amazon Registry
@@ -47,7 +49,7 @@ export default function RegistryPage() {
           >
             <div className="text-center">
               <div className="w-24 h-24 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-4xl font-bold text-blue-600">W</span>
+                <Image src="/logos/walmart.svg" alt="Walmart Logo" width={96} height={96} className="rounded-full" />
               </div>
               <h2 className="text-2xl font-serif text-sky-900 mb-3">
                 Walmart Registry
@@ -69,7 +71,9 @@ export default function RegistryPage() {
               <span className="text-4xl">🏠</span>
             </div>
             <h2 className="text-2xl font-serif text-sky-900 mb-3">
-              House Fund
+              <a href="https://paypal.com/donate/buttons/manage/unhosted?status=SUCCESS" target="_blank" rel="noopener noreferrer" className="hover:underline">
+                House Fund
+              </a>
             </h2>
             <p className="text-gray-700 max-w-2xl mx-auto mb-4">
               If you'd prefer to contribute to our new home, we'd be incredibly grateful. Details coming soon!
