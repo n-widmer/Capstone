@@ -42,7 +42,8 @@ export async function fetchGroupPayload(conn, groupId) {
         u.plus_one_allowed,
         r.attending AS attending,
         r.plus_one,
-        r.plus_one_name
+        r.plus_one_name,
+        r.diet_restrictions
       FROM users u
       LEFT JOIN rsvps r ON r.user_id = u.user_id
       WHERE u.group_id = ?
@@ -62,8 +63,9 @@ export async function fetchGroupPayload(conn, groupId) {
   );
   const existing = existingRows.length ? existingRows[0] : null;
 
+  // Dress code and song are group-level; dietary is per-member (see members above).
   const [rsvpMetaRows] = await conn.execute(
-    `SELECT diet_restrictions, dress_code, song_recommendations
+    `SELECT dress_code, song_recommendations
      FROM rsvps r
      JOIN users u ON u.user_id = r.user_id
      WHERE u.group_id = ?
@@ -82,6 +84,7 @@ export async function fetchGroupPayload(conn, groupId) {
       attending: m.attending === null ? null : Number(m.attending),
       plus_one: m.plus_one === null ? null : Number(m.plus_one),
       plus_one_name: m.plus_one_name ?? null,
+      diet_restrictions: m.diet_restrictions ?? null,
     })),
     rsvp: {
       exists: !!existing,
@@ -91,7 +94,6 @@ export async function fetchGroupPayload(conn, groupId) {
     },
     rsvp_meta: meta
       ? {
-          diet_restrictions: meta.diet_restrictions,
           dress_code: meta.dress_code,
           song_recommendations: meta.song_recommendations,
         }

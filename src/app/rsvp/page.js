@@ -12,7 +12,7 @@ export default function RSVPPage() {
 
   const [attendingIds, setAttendingIds] = useState([]);
   const [plusOneByUser, setPlusOneByUser] = useState({});
-  const [diet, setDiet] = useState("");
+  const [dietByUser, setDietByUser] = useState({}); // user_id -> dietary restriction text
   const [dress, setDress] = useState("");
   const [songTitle, setSongTitle] = useState("");
   const [songArtist, setSongArtist] = useState("");
@@ -22,13 +22,18 @@ export default function RSVPPage() {
   function applyGroup(json) {
     setData(json);
 
-    const map = {};
+    const plusMap = {};
+    const dietMap = {};
     for (const m of json.members) {
       if (Number(m.plus_one_allowed) === 1 && Number(m.plus_one) === 1) {
-        map[m.user_id] = m.plus_one_name || "";
+        plusMap[m.user_id] = m.plus_one_name || "";
+      }
+      if (m.diet_restrictions) {
+        dietMap[m.user_id] = m.diet_restrictions;
       }
     }
-    setPlusOneByUser(map);
+    setPlusOneByUser(plusMap);
+    setDietByUser(dietMap);
 
     // default: select everyone already marked attending
     const attendingFromDb = json.members
@@ -38,12 +43,10 @@ export default function RSVPPage() {
     setAttendingIds(hasAnyRsvpRows ? attendingFromDb : []);
 
     if (json.rsvp_meta) {
-      setDiet(json.rsvp_meta.diet_restrictions || "");
       setDress(json.rsvp_meta.dress_code || "");
       setSongTitle(json.rsvp_meta.song_recommendations || "");
       setSongArtist("");
     } else {
-      setDiet("");
       setDress("");
       setSongTitle("");
       setSongArtist("");
@@ -82,7 +85,7 @@ export default function RSVPPage() {
     setMode("create");
     setAttendingIds([]);
     setPlusOneByUser({});
-    setDiet("");
+    setDietByUser({});
     setDress("");
     setSongTitle("");
     setSongArtist("");
@@ -123,7 +126,7 @@ export default function RSVPPage() {
         group_id: data.group.group_id,
         attending_user_ids: attendingIds,
         plus_ones: plusOneByUser,
-        diet_restrictions: diet,
+        diets: dietByUser,
         dress_code: dress,
         song_recommendations: songTitle,
         song_title: songTitle,
@@ -145,6 +148,11 @@ export default function RSVPPage() {
     (data?.members ?? []).filter(
       (m) => Number(m.plus_one_allowed) === 1 && attendingIds.includes(m.user_id)
     );
+
+  // Members who are attending — each can list their own dietary restriction
+  const attendingMembers = (data?.members ?? []).filter((m) =>
+    attendingIds.includes(m.user_id)
+  );
 
   return (
     <main className="min-h-screen py-12 px-4">
@@ -330,13 +338,33 @@ export default function RSVPPage() {
               <label className="block text-sm font-semibold text-sky-800 mb-2">
                 Dietary Restrictions / Allergies
               </label>
-              <input
-                className="w-full rounded-lg border-2 border-sky-400 px-4 py-3 focus:border-sky-600 focus:ring-2 focus:ring-sky-200 transition-all duration-200"
-                value={diet}
-                onChange={(e) => setDiet(e.target.value)}
-                placeholder="Let us know about any dietary needs..."
-                disabled={mode === "view"}
-              />
+              {attendingMembers.length === 0 ? (
+                <p className="text-sm text-gray-500 italic">
+                  Select who's attending above to note any dietary needs for each guest.
+                </p>
+              ) : (
+                <div className="space-y-3">
+                  <p className="text-sm text-gray-500">
+                    List anything for each guest so we can flag it to the caterer.
+                  </p>
+                  {attendingMembers.map((m) => (
+                    <div key={m.user_id} className="space-y-1">
+                      <label className="block text-sm font-medium text-gray-700">
+                        {m.name}
+                      </label>
+                      <input
+                        className="w-full rounded-lg border-2 border-sky-400 px-4 py-2 focus:border-sky-600 focus:ring-2 focus:ring-sky-200 transition-all duration-200"
+                        value={dietByUser[m.user_id] ?? ""}
+                        onChange={(e) =>
+                          setDietByUser((prev) => ({ ...prev, [m.user_id]: e.target.value }))
+                        }
+                        placeholder={`Allergies or dietary needs for ${m.name} (optional)`}
+                        disabled={mode === "view"}
+                      />
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             <div>

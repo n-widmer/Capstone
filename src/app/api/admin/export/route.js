@@ -73,6 +73,7 @@ async function exportDietary(conn) {
      JOIN users u ON u.user_id = r.user_id
      JOIN \`groups\` g ON g.group_id = u.group_id
      WHERE r.diet_restrictions IS NOT NULL AND r.diet_restrictions != ''
+       AND r.attending = 1
      ORDER BY g.family_name, u.last_name, u.first_name`
   );
 

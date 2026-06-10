@@ -23,16 +23,21 @@ export default function DietaryReportPage() {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         return res.json();
       })
-      .then((data) => setDietary(data.dietary))
+      .then((data) => setDietary(data.dietary || []))
       .catch((err) => setError(err.message));
   }, []);
 
   function exportCSV() {
     if (!dietary || dietary.length === 0) return;
 
-    const rows = [["Dietary Restriction", "Count"]];
+    const esc = (v) => `"${String(v ?? "").replace(/"/g, '""')}"`;
+    const rows = [["Guest", "Family", "Dietary Restriction"]];
     dietary.forEach((d) => {
-      rows.push([`"${d.diet_restrictions.replace(/"/g, '""')}"`, d.count]);
+      rows.push([
+        esc(`${d.first_name} ${d.last_name}`),
+        esc(d.family_name),
+        esc(d.diet_restrictions),
+      ]);
     });
 
     const csv = rows.map((r) => r.join(",")).join("\n");
@@ -61,12 +66,26 @@ export default function DietaryReportPage() {
     );
   }
 
+  // Aggregate counts by restriction text (case-insensitive) for the overview chart.
+  const counts = new Map();
+  for (const d of dietary) {
+    const label = d.diet_restrictions.trim();
+    const norm = label.toLowerCase();
+    const existing = counts.get(norm);
+    if (existing) {
+      existing.count += 1;
+    } else {
+      counts.set(norm, { label, count: 1 });
+    }
+  }
+  const grouped = [...counts.values()].sort((a, b) => b.count - a.count);
+
   const chartData = {
-    labels: dietary.map((d) => d.diet_restrictions),
+    labels: grouped.map((d) => d.label),
     datasets: [
       {
         label: "Guests",
-        data: dietary.map((d) => d.count),
+        data: grouped.map((d) => d.count),
         backgroundColor: "#0c4a6e",
         borderRadius: 4,
       },
@@ -104,8 +123,15 @@ export default function DietaryReportPage() {
             Dietary Report
           </h1>
           <p className="mt-1 text-sm text-gray-500">
-            {dietary.length} unique restriction{dietary.length !== 1 ? "s" : ""}{" "}
-            reported
+            {dietary.length} guest{dietary.length !== 1 ? "s" : ""} reported a
+            restriction
+            {grouped.length > 0 && (
+              <>
+                {" "}
+                &middot; {grouped.length} unique restriction
+                {grouped.length !== 1 ? "s" : ""}
+              </>
+            )}
           </p>
         </div>
         <button
@@ -123,40 +149,44 @@ export default function DietaryReportPage() {
         </div>
       ) : (
         <>
-          {/* Chart */}
+          {/* Overview chart */}
           <div className="mb-8 rounded-2xl bg-white p-6 shadow">
             <h2 className="mb-4 font-[family-name:var(--font-cormorant)] text-xl font-semibold text-sky-900">
               Restrictions by Count
             </h2>
-            <div style={{ minHeight: Math.max(200, dietary.length * 40) }}>
+            <div style={{ minHeight: Math.max(200, grouped.length * 40) }}>
               <Bar data={chartData} options={chartOptions} />
             </div>
           </div>
 
-          {/* Table */}
+          {/* Per-guest table — who reported each restriction */}
           <div className="overflow-hidden rounded-2xl bg-white shadow">
             <table className="w-full text-left text-sm">
               <thead>
                 <tr className="border-b border-gray-200 bg-gray-50">
                   <th className="px-6 py-3 font-[family-name:var(--font-cormorant)] text-sm font-semibold uppercase tracking-wide text-gray-600">
-                    Restriction
+                    Guest
                   </th>
-                  <th className="px-6 py-3 text-right font-[family-name:var(--font-cormorant)] text-sm font-semibold uppercase tracking-wide text-gray-600">
-                    Count
+                  <th className="px-6 py-3 font-[family-name:var(--font-cormorant)] text-sm font-semibold uppercase tracking-wide text-gray-600">
+                    Family
+                  </th>
+                  <th className="px-6 py-3 font-[family-name:var(--font-cormorant)] text-sm font-semibold uppercase tracking-wide text-gray-600">
+                    Restriction
                   </th>
                 </tr>
               </thead>
               <tbody>
                 {dietary.map((d, i) => (
                   <tr
-                    key={d.diet_restrictions}
+                    key={`${d.family_name}-${d.first_name}-${d.last_name}-${i}`}
                     className={i % 2 === 0 ? "bg-white" : "bg-gray-50"}
                   >
+                    <td className="px-6 py-3 font-medium text-gray-800">
+                      {d.first_name} {d.last_name}
+                    </td>
+                    <td className="px-6 py-3 text-gray-500">{d.family_name}</td>
                     <td className="px-6 py-3 text-gray-800">
                       {d.diet_restrictions}
-                    </td>
-                    <td className="px-6 py-3 text-right font-semibold text-sky-900">
-                      {d.count}
                     </td>
                   </tr>
                 ))}

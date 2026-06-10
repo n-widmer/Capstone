@@ -14,7 +14,7 @@ export async function GET() {
 //   group_id: 1,
 //   attending_user_ids: [1,2],
 //   plus_ones: { user_id: "Guest Name" },
-//   diet_restrictions: "...",
+//   diets: { user_id: "Allergic to shellfish" }, // per-person dietary restrictions
 //   dress_code: "...",
 //   song_title: "...",
 //   song_artist: "..."
@@ -29,7 +29,8 @@ export async function POST(req) {
   const attending_user_ids = Array.isArray(body.attending_user_ids) ? body.attending_user_ids : [];
 
   const plus_ones = body.plus_ones && typeof body.plus_ones === "object" ? body.plus_ones : {};
-  const diet_restrictions = body.diet_restrictions ? String(body.diet_restrictions).trim() : null;
+  // Dietary restrictions are tracked per person so admins can see who has each one.
+  const diets = body.diets && typeof body.diets === "object" ? body.diets : {};
   const dress_code = body.dress_code ? String(body.dress_code).trim() : null;
   const song_recommendations = body.song_recommendations ? String(body.song_recommendations).trim() : null;
 
@@ -132,12 +133,16 @@ export async function POST(req) {
       const rowPlusOne = rowPlusOneAllowedByAttendance && normalizedGuestName.length > 0 ? 1 : 0;
       const rowPlusOneName = rowPlusOne ? normalizedGuestName : null;
 
+      // Each member's own dietary restriction; cleared if they aren't attending.
+      const rawDiet = diets[uid] ?? diets[String(uid)] ?? null;
+      const memberDiet = attending === 1 && rawDiet ? String(rawDiet).trim() || null : null;
+
       await conn.execute(upsertSql, [
         uid,
         attending,
         rowPlusOne,
         rowPlusOneName,
-        diet_restrictions,
+        memberDiet,
         dress_code,
         song_recommendations,
       ]);

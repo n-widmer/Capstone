@@ -153,4 +153,43 @@ describe("POST /api/rsvp", () => {
     // members, existing-check, upsert, song insert
     expect(mockExecute).toHaveBeenCalledTimes(4);
   });
+
+  it("stores each attending member's own dietary restriction", async () => {
+    mockExecute
+      .mockResolvedValueOnce([[{ user_id: 1, plus_one_allowed: 0 }, { user_id: 2, plus_one_allowed: 0 }]]) // members
+      .mockResolvedValueOnce([[]]) // no existing
+      .mockResolvedValueOnce([{ affectedRows: 1 }]) // upsert user 1
+      .mockResolvedValueOnce([{ affectedRows: 1 }]); // upsert user 2
+
+    const res = await POST(makeRequest({
+      group_id: 1,
+      attending_user_ids: [1, 2],
+      diets: { 1: "Allergic to shellfish", 2: "" },
+    }));
+
+    expect(res.status).toBe(200);
+
+    // The per-member diet is the 5th positional param of each rsvps upsert.
+    const upserts = mockExecute.mock.calls.filter(([sql]) => /INSERT INTO\s+rsvps/i.test(sql));
+    const dietByUid = Object.fromEntries(upserts.map(([, params]) => [params[0], params[4]]));
+    expect(dietByUid[1]).toBe("Allergic to shellfish");
+    expect(dietByUid[2]).toBeNull(); // empty input → no restriction
+  });
+
+  it("does not store a dietary restriction for a non-attending member", async () => {
+    mockExecute
+      .mockResolvedValueOnce([[{ user_id: 1, plus_one_allowed: 0 }]]) // members
+      .mockResolvedValueOnce([[]]) // no existing
+      .mockResolvedValueOnce([{ affectedRows: 1 }]); // upsert user 1
+
+    const res = await POST(makeRequest({
+      group_id: 1,
+      attending_user_ids: [], // user 1 not attending
+      diets: { 1: "Vegetarian" },
+    }));
+
+    expect(res.status).toBe(200);
+    const upserts = mockExecute.mock.calls.filter(([sql]) => /INSERT INTO\s+rsvps/i.test(sql));
+    expect(upserts[0][1][4]).toBeNull(); // diet cleared when not attending
+  });
 });
