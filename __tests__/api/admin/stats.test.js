@@ -98,11 +98,11 @@ describe("GET /api/admin/stats", () => {
     expect(data.not_responded).toBe(50);
   });
 
-  it("returns per-person dietary restrictions", async () => {
+  it("returns attending guests per-person with restriction-havers first", async () => {
     setupMockStats({
       dietary: [
         { first_name: "Jane", last_name: "Smith", family_name: "Smith", diet_restrictions: "Vegetarian" },
-        { first_name: "Al", last_name: "Brady", family_name: "Brady", diet_restrictions: "Gluten-free" },
+        { first_name: "Al", last_name: "Brady", family_name: "Brady", diet_restrictions: null },
       ],
     });
 
@@ -113,6 +113,7 @@ describe("GET /api/admin/stats", () => {
     expect(data.dietary[0].first_name).toBe("Jane");
     expect(data.dietary[0].family_name).toBe("Smith");
     expect(data.dietary[0].diet_restrictions).toBe("Vegetarian");
+    expect(data.dietary[1].diet_restrictions).toBeNull();
   });
 
   it("returns 500 on database error", async () => {

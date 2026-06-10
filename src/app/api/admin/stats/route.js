@@ -41,16 +41,17 @@ export async function GET() {
        JOIN users u ON u.user_id = r.user_id`
     );
 
-    // Dietary restrictions — one row per attending person, so admins can see
-    // exactly who reported each restriction.
+    // One row per attending guest so admins can see who reported what.
+    // Guests who actually noted a restriction are sorted to the top.
     const [dietary] = await conn.execute(
       `SELECT u.first_name, u.last_name, g.family_name, r.diet_restrictions
        FROM rsvps r
        JOIN users u ON u.user_id = r.user_id
        JOIN \`groups\` g ON g.group_id = u.group_id
-       WHERE r.diet_restrictions IS NOT NULL AND r.diet_restrictions != ''
-         AND r.attending = 1
-       ORDER BY g.family_name, u.last_name, u.first_name`
+       WHERE r.attending = 1
+       ORDER BY
+         (r.diet_restrictions IS NOT NULL AND r.diet_restrictions != '') DESC,
+         g.family_name, u.last_name, u.first_name`
     );
 
     // Per-family breakdown

@@ -56,7 +56,7 @@ describe("Auth Middleware", () => {
   it("allows authenticated requests through to /api/admin/*", async () => {
     getToken.mockResolvedValueOnce({ name: "Admin", email: "admin@wedding.local" });
 
-    const res = await middleware(createRequest("/api/admin/budget"));
+    const res = await middleware(createRequest("/api/admin/stats"));
 
     expect(res.status).toBe(200);
   });
