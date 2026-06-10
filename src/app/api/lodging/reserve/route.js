@@ -1,30 +1,31 @@
 import { NextResponse } from "next/server";
 import pool from "@/lib/db";
+import { parseGroupId, readGuestGroupId } from "@/lib/groups";
 
 // POST — submit a lodging reservation
-// Body: { access_code, lodging_embed_id, guest_ids: [user_id, ...] }
+// Body: { group_id, lodging_embed_id, guest_ids: [user_id, ...] }
 export async function POST(req) {
   const body = await req.json().catch(() => null);
   if (!body) return NextResponse.json({ ok: false, error: "Invalid request" }, { status: 400 });
 
-  const { access_code, lodging_embed_id, guest_ids } = body;
+  const { lodging_embed_id, guest_ids } = body;
+  const group_id = parseGroupId(body.group_id) || readGuestGroupId(req);
 
-  if (!access_code) return NextResponse.json({ ok: false, error: "Missing access code" }, { status: 400 });
+  if (!group_id) return NextResponse.json({ ok: false, error: "Missing group" }, { status: 400 });
   if (!lodging_embed_id) return NextResponse.json({ ok: false, error: "Missing listing" }, { status: 400 });
   if (!Array.isArray(guest_ids) || guest_ids.length === 0)
     return NextResponse.json({ ok: false, error: "Please select at least one guest" }, { status: 400 });
 
   const conn = await pool.getConnection();
   try {
-    // validate access code and get the group
+    // validate the group exists
     const [groups] = await conn.execute(
-      `SELECT group_id FROM \`groups\` WHERE access_code = ? LIMIT 1`,
-      [access_code.trim()]
+      `SELECT group_id FROM \`groups\` WHERE group_id = ? LIMIT 1`,
+      [group_id]
     );
     if (!groups.length) {
-      return NextResponse.json({ ok: false, error: "Invalid access code" }, { status: 403 });
+      return NextResponse.json({ ok: false, error: "Group not found" }, { status: 404 });
     }
-    const { group_id } = groups[0];
 
     // block if this family has already reserved any listing
     const [familyExisting] = await conn.execute(

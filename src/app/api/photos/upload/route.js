@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import pool from "@/lib/db";
+import { parseGroupId, readGuestGroupId } from "@/lib/groups";
 
 const ALLOWED_TYPES = {
   "image/jpeg": "jpg",
@@ -9,7 +10,7 @@ const ALLOWED_TYPES = {
 
 const MAX_SIZE = 10 * 1024 * 1024; // 10 MB
 
-// POST /api/photos/upload — FormData: file, access_code, caption
+// POST /api/photos/upload — FormData: file, group_id, caption
 export async function POST(req) {
   let formData;
   try {
@@ -22,12 +23,12 @@ export async function POST(req) {
   }
 
   const file = formData.get("file");
-  const accessCode = (formData.get("access_code") || "").toString().trim();
+  const groupId = parseGroupId(formData.get("group_id")) || readGuestGroupId(req);
   const caption = (formData.get("caption") || "").toString().trim();
 
-  if (!accessCode) {
+  if (!groupId) {
     return NextResponse.json(
-      { ok: false, error: "Missing access code" },
+      { ok: false, error: "Missing group" },
       { status: 400 }
     );
   }
@@ -58,20 +59,18 @@ export async function POST(req) {
 
   const conn = await pool.getConnection();
   try {
-    // Validate access code
+    // Validate the group exists
     const [groups] = await conn.execute(
-      `SELECT group_id FROM \`groups\` WHERE access_code = ? LIMIT 1`,
-      [accessCode]
+      `SELECT group_id FROM \`groups\` WHERE group_id = ? LIMIT 1`,
+      [groupId]
     );
 
     if (!groups.length) {
       return NextResponse.json(
-        { ok: false, error: "Invalid access code" },
+        { ok: false, error: "Group not found" },
         { status: 404 }
       );
     }
-
-    const groupId = groups[0].group_id;
 
     // Generate unique filename (kept for reference)
     const random = Math.random().toString(36).slice(2, 10);

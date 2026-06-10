@@ -5,7 +5,7 @@ export async function GET() {
   const conn = await pool.getConnection();
   try {
     const [rows] = await conn.execute(
-      `SELECT g.group_id, g.family_name, g.access_code,
+      `SELECT g.group_id, g.family_name,
               u.user_id, u.first_name, u.last_name, u.plus_one_allowed,
               r.attending, r.plus_one, r.plus_one_name,
               r.diet_restrictions, r.dress_code, r.song_recommendations
@@ -22,7 +22,6 @@ export async function GET() {
         familyMap.set(row.group_id, {
           group_id: row.group_id,
           family_name: row.family_name,
-          access_code: row.access_code,
           members: [],
         });
       }

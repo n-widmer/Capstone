@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
+import FamilyFinder from "@/components/FamilyFinder";
 
 export default function PlaylistPage() {
-  const [code, setCode] = useState("");
-  const [authed, setAuthed] = useState(false);
   const [groupId, setGroupId] = useState(null);
+  const [familyName, setFamilyName] = useState("");
+  const [loadingIdentity, setLoadingIdentity] = useState(true);
   const [songs, setSongs] = useState([]);
   const [myVotesUsed, setMyVotesUsed] = useState(0);
   const [maxVotes] = useState(5);
@@ -14,29 +15,53 @@ export default function PlaylistPage() {
   const [artist, setArtist] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
-  const fetchSongs = useCallback(async (accessCode) => {
-    const res = await fetch(`/api/songs?code=${encodeURIComponent(accessCode)}`);
+  const fetchSongs = useCallback(async (gid) => {
+    const res = await fetch(`/api/songs?group_id=${encodeURIComponent(gid)}`);
     const json = await res.json();
     if (!json.ok) {
       setError(json.error || "Failed to load songs");
       return false;
     }
-    setGroupId(json.group_id);
     setSongs(json.songs);
     setMyVotesUsed(json.my_votes_used);
     setError("");
     return true;
   }, []);
 
-  async function handleAuth() {
+  // Reuse the family the guest already identified as this session.
+  useEffect(() => {
+    let active = true;
+    fetch("/api/guest-group")
+      .then((r) => r.json())
+      .then(async (json) => {
+        if (active && json.ok && json.group) {
+          setGroupId(json.group.group_id);
+          setFamilyName(json.group.family_name);
+          await fetchSongs(json.group.group_id);
+        }
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (active) setLoadingIdentity(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [fetchSongs]);
+
+  function handleSelected(payload) {
+    setGroupId(payload.group.group_id);
+    setFamilyName(payload.group.family_name);
+    fetchSongs(payload.group.group_id);
+  }
+
+  async function switchFamily() {
+    await fetch("/api/guest-group", { method: "DELETE" }).catch(() => {});
+    setGroupId(null);
+    setFamilyName("");
+    setSongs([]);
+    setMyVotesUsed(0);
     setError("");
-    const trimmed = code.trim();
-    if (!trimmed) {
-      setError("Please enter your access code");
-      return;
-    }
-    const ok = await fetchSongs(trimmed);
-    if (ok) setAuthed(true);
   }
 
   async function handleAddSong(e) {
@@ -52,7 +77,7 @@ export default function PlaylistPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          access_code: code.trim(),
+          group_id: groupId,
           song_title: songTitle.trim(),
           artist: artist.trim(),
         }),
@@ -64,7 +89,7 @@ export default function PlaylistPage() {
       }
       setSongTitle("");
       setArtist("");
-      await fetchSongs(code.trim());
+      await fetchSongs(groupId);
     } finally {
       setSubmitting(false);
     }
@@ -84,7 +109,7 @@ export default function PlaylistPage() {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        access_code: code.trim(),
+        group_id: groupId,
         song_id: songId,
       }),
     });
@@ -93,11 +118,11 @@ export default function PlaylistPage() {
       setError(json.error || "Vote failed");
       return;
     }
-    await fetchSongs(code.trim());
+    await fetchSongs(groupId);
   }
 
-  // ---------- Access code screen ----------
-  if (!authed) {
+  // ---------- Find-your-family screen ----------
+  if (!groupId) {
     return (
       <main className="min-h-screen py-12 px-4">
         <div className="mx-auto max-w-2xl">
@@ -115,43 +140,23 @@ export default function PlaylistPage() {
             </p>
           </div>
 
-          {/* Access Code Card */}
+          {/* Find-your-family Card */}
           <div className="bg-white rounded-xl shadow-2xl border-4 border-double border-sky-400 p-8 mb-8 relative overflow-hidden">
             <div className="absolute top-0 left-0 w-16 h-16 border-t-4 border-l-4 border-sky-300 opacity-50"></div>
             <div className="absolute bottom-0 right-0 w-16 h-16 border-b-4 border-r-4 border-sky-300 opacity-50"></div>
 
             <div className="text-center mb-6">
               <h2 className="text-2xl font-[family-name:var(--font-cormorant)] text-sky-800 mb-2">
-                Enter Your Access Code
+                Find Your Group
               </h2>
-              <p className="text-gray-600">You'll find this on your invitation</p>
+              <p className="text-gray-600">Search your name to vote and request songs</p>
             </div>
 
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-semibold text-sky-800 mb-2">
-                  Access Code
-                </label>
-                <input
-                  className="w-full rounded-lg border-2 border-sky-400 px-4 py-3 text-lg focus:border-sky-600 focus:ring-2 focus:ring-sky-200 transition-all duration-200"
-                  value={code}
-                  onChange={(e) => setCode(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && handleAuth()}
-                  placeholder="e.g. ABC123"
-                />
-              </div>
-              <button
-                className="w-full cursor-pointer rounded-lg bg-sky-800 px-6 py-4 text-lg font-bold text-white hover:bg-sky-900 hover:scale-[1.02] transition-all duration-200 shadow-lg hover:shadow-xl"
-                onClick={handleAuth}
-              >
-                View Playlist
-              </button>
-              {error && (
-                <div className="bg-red-50 border-l-4 border-red-400 p-4 rounded">
-                  <p className="text-red-700 font-medium">{error}</p>
-                </div>
-              )}
-            </div>
+            {loadingIdentity ? (
+              <p className="text-center text-gray-500 py-4">Loading…</p>
+            ) : (
+              <FamilyFinder onSelected={handleSelected} autoFocus />
+            )}
           </div>
         </div>
       </main>
@@ -174,6 +179,17 @@ export default function PlaylistPage() {
               {myVotesUsed}/{maxVotes}
             </span>
           </p>
+          {familyName && (
+            <p className="text-xs text-gray-400 mt-1">
+              Voting as the {familyName} family ·{" "}
+              <button
+                onClick={switchFamily}
+                className="cursor-pointer text-sky-600 hover:text-sky-800 underline"
+              >
+                Not you?
+              </button>
+            </p>
+          )}
         </div>
 
         {/* Error banner */}

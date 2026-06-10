@@ -72,7 +72,8 @@ function AccessPageContent() {
                 className="w-full rounded-lg border-2 border-sky-400 px-4 py-3 text-lg focus:border-sky-600 focus:ring-2 focus:ring-sky-200 transition-all duration-200"
                 value={code}
                 onChange={(e) => setCode(e.target.value)}
-                placeholder="e.g. ABC123"
+                onKeyDown={(e) => e.key === "Enter" && code.trim() && submitAccessCode()}
+                placeholder="Enter your access code"
               />
             </div>
 

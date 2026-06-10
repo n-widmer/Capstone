@@ -27,6 +27,7 @@ CREATE TABLE IF NOT EXISTS settings (
 );
 INSERT IGNORE INTO settings (key_name, value) VALUES ('rsvp_deadline', '2027-04-15');
 INSERT IGNORE INTO settings (key_name, value) VALUES ('wedding_budget', '25000');
+INSERT IGNORE INTO settings (key_name, value) VALUES ('guest_access_code', 'tori&connor');
 
 -- Expenses table (budget tracker)
 CREATE TABLE IF NOT EXISTS expenses (

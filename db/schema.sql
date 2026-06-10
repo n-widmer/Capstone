@@ -54,6 +54,15 @@ CREATE TABLE IF NOT EXISTS admins (
     password_hash  VARCHAR(255) NOT NULL
 );
 
+-- Client-editable config (RSVP deadline, budget, and the universal guest access code)
+CREATE TABLE IF NOT EXISTS settings (
+    key_name VARCHAR(50) PRIMARY KEY,
+    value    TEXT NOT NULL
+);
+INSERT IGNORE INTO settings (key_name, value) VALUES ('rsvp_deadline', '2027-04-15');
+INSERT IGNORE INTO settings (key_name, value) VALUES ('wedding_budget', '25000');
+INSERT IGNORE INTO settings (key_name, value) VALUES ('guest_access_code', 'tori&connor');
+
 -- Store uploaded photos for the gallery
 CREATE TABLE IF NOT EXISTS photos (
     photo_id INT AUTO_INCREMENT PRIMARY KEY,

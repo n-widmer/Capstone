@@ -1,24 +1,25 @@
 import { NextResponse } from "next/server";
 import pool from "@/lib/db";
+import { parseGroupId, readGuestGroupId } from "@/lib/groups";
 
-// GET /api/songs?code=ACCESSCODE
+// GET /api/songs?group_id=<id>
 export async function GET(req) {
   const { searchParams } = new URL(req.url);
-  const code = (searchParams.get("code") || "").trim();
+  const groupId = parseGroupId(searchParams.get("group_id")) || readGuestGroupId(req);
 
-  if (!code) {
-    return NextResponse.json({ ok: false, error: "Missing access code" }, { status: 400 });
+  if (!groupId) {
+    return NextResponse.json({ ok: false, error: "Missing group" }, { status: 400 });
   }
 
   const conn = await pool.getConnection();
   try {
     const [groups] = await conn.execute(
-      `SELECT group_id, family_name FROM \`groups\` WHERE access_code = ? LIMIT 1`,
-      [code]
+      `SELECT group_id, family_name FROM \`groups\` WHERE group_id = ? LIMIT 1`,
+      [groupId]
     );
 
     if (!groups.length) {
-      return NextResponse.json({ ok: false, error: "Invalid access code" }, { status: 404 });
+      return NextResponse.json({ ok: false, error: "Group not found" }, { status: 404 });
     }
 
     const group = groups[0];
@@ -77,12 +78,12 @@ export async function POST(req) {
     return NextResponse.json({ ok: false, error: "Invalid JSON" }, { status: 400 });
   }
 
-  const code = (body.access_code || "").trim();
+  const groupId = parseGroupId(body.group_id) || readGuestGroupId(req);
   const songTitle = (body.song_title || "").trim();
   const artist = (body.artist || "").trim();
 
-  if (!code) {
-    return NextResponse.json({ ok: false, error: "Missing access code" }, { status: 400 });
+  if (!groupId) {
+    return NextResponse.json({ ok: false, error: "Missing group" }, { status: 400 });
   }
   if (!songTitle) {
     return NextResponse.json({ ok: false, error: "Song title is required" }, { status: 400 });
@@ -91,15 +92,13 @@ export async function POST(req) {
   const conn = await pool.getConnection();
   try {
     const [groups] = await conn.execute(
-      `SELECT group_id FROM \`groups\` WHERE access_code = ? LIMIT 1`,
-      [code]
+      `SELECT group_id FROM \`groups\` WHERE group_id = ? LIMIT 1`,
+      [groupId]
     );
 
     if (!groups.length) {
-      return NextResponse.json({ ok: false, error: "Invalid access code" }, { status: 404 });
+      return NextResponse.json({ ok: false, error: "Group not found" }, { status: 404 });
     }
-
-    const groupId = groups[0].group_id;
 
     const [result] = await conn.execute(
       `INSERT INTO song_requests (group_id, song_title, artist, votes) VALUES (?, ?, ?, 0)`,

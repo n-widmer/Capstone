@@ -62,8 +62,8 @@ export default function MenuPage() {
             </h2>
             <p className="text-center text-gray-400 text-sm italic mb-6">Served upstairs</p>
             <div className="space-y-3 text-center">
-              <p className="text-lg text-gray-700 font-medium">Marry Me Chicken</p>
-              <p className="text-lg text-gray-700 font-medium">Penne Pasta with Marinara & Meatballs</p>
+              <p className="text-lg text-gray-700 font-medium">Roasted Red Pepper, Spinach, and Mozzarella Stuffed Chicken</p>
+              <p className="text-lg text-gray-700 font-medium">Spaghetti and Meatballs</p>
             </div>
           </section>
 

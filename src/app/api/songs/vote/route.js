@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import pool from "@/lib/db";
+import { parseGroupId, readGuestGroupId } from "@/lib/groups";
 
 const MAX_VOTES = 5;
 
@@ -12,11 +13,11 @@ export async function POST(req) {
     return NextResponse.json({ ok: false, error: "Invalid JSON" }, { status: 400 });
   }
 
-  const code = (body.access_code || "").trim();
+  const groupId = parseGroupId(body.group_id) || readGuestGroupId(req);
   const songId = body.song_id;
 
-  if (!code) {
-    return NextResponse.json({ ok: false, error: "Missing access code" }, { status: 400 });
+  if (!groupId) {
+    return NextResponse.json({ ok: false, error: "Missing group" }, { status: 400 });
   }
   if (!songId) {
     return NextResponse.json({ ok: false, error: "Missing song_id" }, { status: 400 });
@@ -26,18 +27,16 @@ export async function POST(req) {
   try {
     await conn.beginTransaction();
 
-    // Validate access code
+    // Validate group
     const [groups] = await conn.execute(
-      `SELECT group_id FROM \`groups\` WHERE access_code = ? LIMIT 1`,
-      [code]
+      `SELECT group_id FROM \`groups\` WHERE group_id = ? LIMIT 1`,
+      [groupId]
     );
 
     if (!groups.length) {
       await conn.rollback();
-      return NextResponse.json({ ok: false, error: "Invalid access code" }, { status: 404 });
+      return NextResponse.json({ ok: false, error: "Group not found" }, { status: 404 });
     }
-
-    const groupId = groups[0].group_id;
 
     // Check if song exists
     const [songs] = await conn.execute(

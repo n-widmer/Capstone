@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import pool from "@/lib/db";
+import { parseGroupId, readGuestGroupId } from "@/lib/groups";
 
 // GET /api/rsvp — fetch RSVP data (admin only)
 export async function GET() {
@@ -10,13 +11,13 @@ export async function GET() {
 // POST /api/rsvp
 // Body:
 // {
-//   access_code: "TEST123",
+//   group_id: 1,
 //   attending_user_ids: [1,2],
-//   plus_one: 0|1,
-//   plus_one_name: "Name",
+//   plus_ones: { user_id: "Guest Name" },
 //   diet_restrictions: "...",
 //   dress_code: "...",
-//   song_recommendations: "..."
+//   song_title: "...",
+//   song_artist: "..."
 // }
 export async function POST(req) {
   const body = await req.json().catch(() => null);
@@ -24,7 +25,7 @@ export async function POST(req) {
     return NextResponse.json({ ok: false, error: "Invalid JSON body" }, { status: 400 });
   }
 
-  const access_code = (body.access_code || "").trim();
+  const group_id = parseGroupId(body.group_id) || readGuestGroupId(req);
   const attending_user_ids = Array.isArray(body.attending_user_ids) ? body.attending_user_ids : [];
 
   const plus_ones = body.plus_ones && typeof body.plus_ones === "object" ? body.plus_ones : {};
@@ -32,26 +33,13 @@ export async function POST(req) {
   const dress_code = body.dress_code ? String(body.dress_code).trim() : null;
   const song_recommendations = body.song_recommendations ? String(body.song_recommendations).trim() : null;
 
-  if (!access_code) {
-    return NextResponse.json({ ok: false, error: "Missing access code" }, { status: 400 });
+  if (!group_id) {
+    return NextResponse.json({ ok: false, error: "Missing group" }, { status: 400 });
   }
 
   const conn = await pool.getConnection();
   try {
     await conn.beginTransaction();
-
-    // Find group
-     const [groups] = await conn.execute(
-       `SELECT group_id FROM \`groups\` WHERE access_code = ? LIMIT 1`,
-       [access_code]
-     );
-
-     if (!groups.length) {
-       await conn.rollback();
-       return NextResponse.json({ ok: false, error: "Invalid access code" }, { status: 403 });
-    }
-
-    const group_id = groups[0].group_id;
 
     // Get all members of group
     const [members] = await conn.execute(

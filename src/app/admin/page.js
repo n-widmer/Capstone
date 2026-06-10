@@ -32,6 +32,28 @@ export default function AdminPage() {
   const [activity, setActivity] = useState([]);
   const [error, setError] = useState(null);
   const [showNonResponders, setShowNonResponders] = useState(false);
+  const [editCode, setEditCode] = useState(false);
+  const [codeInput, setCodeInput] = useState("");
+  const [savingCode, setSavingCode] = useState(false);
+
+  async function saveGuestCode() {
+    const value = codeInput.trim();
+    if (!value) return;
+    setSavingCode(true);
+    try {
+      const res = await fetch("/api/admin/settings", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ key_name: "guest_access_code", value }),
+      });
+      if (res.ok) {
+        setSettings((prev) => ({ ...prev, guest_access_code: value }));
+        setEditCode(false);
+      }
+    } finally {
+      setSavingCode(false);
+    }
+  }
 
   useEffect(() => {
     Promise.all([
@@ -181,15 +203,62 @@ export default function AdminPage() {
             {showNonResponders && (
               <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2">
                 {nonResponders.map((f) => (
-                  <div key={f.group_id} className="bg-sky-800/50 rounded-lg px-4 py-2 text-sm flex justify-between">
+                  <div key={f.group_id} className="bg-sky-800/50 rounded-lg px-4 py-2 text-sm">
                     <span>{f.family_name}</span>
-                    <span className="text-sky-300 font-mono text-xs">
-                      {f.access_code || "—"}
-                    </span>
                   </div>
                 ))}
               </div>
             )}
+          </div>
+        )}
+      </div>
+
+      {/* Guest Access Code */}
+      <div className="mb-8 rounded-2xl bg-white p-6 shadow flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <p className="text-sm font-semibold uppercase tracking-wide text-gray-500">
+            Guest Access Code
+          </p>
+          <p className="text-xs text-gray-400 mt-1">
+            The single code every guest uses to enter the site.
+          </p>
+        </div>
+        {editCode ? (
+          <div className="flex items-center gap-2">
+            <input
+              className="w-48 rounded border px-3 py-2 text-lg font-mono"
+              value={codeInput}
+              onChange={(e) => setCodeInput(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && saveGuestCode()}
+            />
+            <button
+              onClick={saveGuestCode}
+              disabled={savingCode || !codeInput.trim()}
+              className="cursor-pointer rounded bg-sky-800 px-4 py-2 text-sm font-bold text-white hover:bg-sky-900 disabled:opacity-50"
+            >
+              {savingCode ? "Saving..." : "Save"}
+            </button>
+            <button
+              onClick={() => setEditCode(false)}
+              className="cursor-pointer rounded border px-4 py-2 text-sm text-gray-600 hover:bg-gray-50"
+            >
+              Cancel
+            </button>
+          </div>
+        ) : (
+          <div className="flex items-center gap-3">
+            <span className="rounded-lg bg-sky-50 px-4 py-2 text-2xl font-mono font-bold text-sky-900">
+              {settings.guest_access_code || "tori&connor"}
+            </span>
+            <button
+              onClick={() => {
+                setCodeInput(settings.guest_access_code || "tori&connor");
+                setEditCode(true);
+              }}
+              className="cursor-pointer text-sm text-sky-600 hover:text-sky-800 underline"
+            >
+              Edit
+            </button>
           </div>
         )}
       </div>

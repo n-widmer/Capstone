@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import FamilyFinder from "@/components/FamilyFinder";
 
 export default function RSVPPage() {
-  const [code, setCode] = useState("");
   const [data, setData] = useState(null);
+  const [loadingIdentity, setLoadingIdentity] = useState(true);
   const [error, setError] = useState("");
   const [showExisting, setShowExisting] = useState(false);
   const [mode, setMode] = useState("create"); // "create" | "view" | "modify"
@@ -16,20 +17,9 @@ export default function RSVPPage() {
   const [songTitle, setSongTitle] = useState("");
   const [songArtist, setSongArtist] = useState("");
 
-  async function lookup() {
-    setError("");
-    setData(null);
-    setShowExisting(false);
-    setMode("create");
-
-    const res = await fetch(`/api/groups?code=${encodeURIComponent(code.trim())}`);
-    const json = await res.json();
-
-    if (!json.ok) {
-      setError(json.error || "Lookup failed");
-      return;
-    }
-
+  // Populate all form state from a group payload (from the finder or the
+  // remembered-identity fetch).
+  function applyGroup(json) {
     setData(json);
 
     const map = {};
@@ -40,13 +30,11 @@ export default function RSVPPage() {
     }
     setPlusOneByUser(map);
 
-    // default: select everyone attending
+    // default: select everyone already marked attending
     const attendingFromDb = json.members
       .filter((m) => Number(m.attending) === 1)
       .map((m) => m.user_id);
-
     const hasAnyRsvpRows = json.members.some((m) => m.attending !== null);
-
     setAttendingIds(hasAnyRsvpRows ? attendingFromDb : []);
 
     if (json.rsvp_meta) {
@@ -61,9 +49,43 @@ export default function RSVPPage() {
       setSongArtist("");
     }
 
-    if (json.rsvp?.exists) {
-      setShowExisting(true);
+    setMode("create");
+    setShowExisting(!!json.rsvp?.exists);
+  }
+
+  // On load, reuse the family the guest already identified as this session.
+  useEffect(() => {
+    let active = true;
+    fetch("/api/guest-group")
+      .then((r) => r.json())
+      .then((json) => {
+        if (active && json.ok && json.group) applyGroup(json);
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (active) setLoadingIdentity(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  async function switchFamily() {
+    setError("");
+    try {
+      await fetch("/api/guest-group", { method: "DELETE" });
+    } catch {
+      /* clearing the cookie is best-effort */
     }
+    setData(null);
+    setShowExisting(false);
+    setMode("create");
+    setAttendingIds([]);
+    setPlusOneByUser({});
+    setDiet("");
+    setDress("");
+    setSongTitle("");
+    setSongArtist("");
   }
 
   function toggleMember(uid) {
@@ -98,7 +120,7 @@ export default function RSVPPage() {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        access_code: code.trim(),
+        group_id: data.group.group_id,
         attending_user_ids: attendingIds,
         plus_ones: plusOneByUser,
         diet_restrictions: diet,
@@ -141,42 +163,25 @@ export default function RSVPPage() {
           </p>
         </div>
 
-        {/* Access Code Card */}
-        <div className="bg-white rounded-xl shadow-2xl border-4 border-double border-sky-400 p-8 mb-8 relative overflow-hidden">
-          {/* Decorative corners */}
-          <div className="absolute top-0 left-0 w-16 h-16 border-t-4 border-l-4 border-sky-300 opacity-50"></div>
-          <div className="absolute bottom-0 right-0 w-16 h-16 border-b-4 border-r-4 border-sky-300 opacity-50"></div>
+        {/* Find-your-family Card (shown until a family is selected) */}
+        {!data && (
+          <div className="bg-white rounded-xl shadow-2xl border-4 border-double border-sky-400 p-8 mb-8 relative overflow-hidden">
+            {/* Decorative corners */}
+            <div className="absolute top-0 left-0 w-16 h-16 border-t-4 border-l-4 border-sky-300 opacity-50"></div>
+            <div className="absolute bottom-0 right-0 w-16 h-16 border-b-4 border-r-4 border-sky-300 opacity-50"></div>
 
-          <div className="text-center mb-6">
-            <h2 className="text-2xl font-serif text-sky-800 mb-2">Enter Your Access Code</h2>
-            <p className="text-gray-600">You'll find this on your invitation</p>
-          </div>
-
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-semibold text-sky-800 mb-2">
-                Access Code
-              </label>
-              <input
-                className="w-full rounded-lg border-2 border-sky-400 px-4 py-3 text-lg focus:border-sky-600 focus:ring-2 focus:ring-sky-200 transition-all duration-200"
-                value={code}
-                onChange={(e) => setCode(e.target.value)}
-                placeholder="e.g. ABC123"
-              />
+            <div className="text-center mb-6">
+              <h2 className="text-2xl font-serif text-sky-800 mb-2">Find Your Invitation</h2>
+              <p className="text-gray-600">Search your name to pull up your group</p>
             </div>
-            <button
-              className="w-full cursor-pointer rounded-lg bg-sky-800 px-6 py-4 text-lg font-bold text-white hover:bg-sky-900 hover:scale-[1.02] transition-all duration-200 shadow-lg hover:shadow-xl"
-              onClick={lookup}
-            >
-              Continue to RSVP
-            </button>
-            {error && (
-              <div className="bg-red-50 border-l-4 border-red-400 p-4 rounded">
-                <p className="text-red-700 font-medium">{error}</p>
-              </div>
+
+            {loadingIdentity ? (
+              <p className="text-center text-gray-500 py-4">Loading…</p>
+            ) : (
+              <FamilyFinder onSelected={applyGroup} autoFocus />
             )}
           </div>
-        </div>
+        )}
 
       {showExisting && data && (
         <div className="fixed inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 z-50">
@@ -222,7 +227,7 @@ export default function RSVPPage() {
             </div>
 
             <p className="mt-4 text-center text-sm text-gray-500 italic">
-              You can make changes using the same access code
+              You can make changes anytime before the deadline
             </p>
           </div>
         </div>
@@ -232,9 +237,17 @@ export default function RSVPPage() {
         <section className="space-y-6">
           {/* Group Members */}
           <div className="bg-white rounded-xl shadow-lg border-l-4 border-sky-600 p-6">
-            <h2 className="text-2xl font-serif text-sky-900 mb-2">
-              {data.group.family_name} Family
-            </h2>
+            <div className="flex items-start justify-between gap-4 mb-2">
+              <h2 className="text-2xl font-serif text-sky-900">
+                {data.group.family_name} Family
+              </h2>
+              <button
+                onClick={switchFamily}
+                className="cursor-pointer text-sm text-sky-600 hover:text-sky-800 underline whitespace-nowrap mt-1"
+              >
+                Not you?
+              </button>
+            </div>
             <p className="text-gray-600 mb-4">
               Who will be joining us?
             </p>
@@ -360,6 +373,12 @@ export default function RSVPPage() {
                 />
               </div>
             </div>
+
+            {error && (
+              <div className="bg-red-50 border-l-4 border-red-400 p-4 rounded">
+                <p className="text-red-700 font-medium">{error}</p>
+              </div>
+            )}
 
             {mode !== "view" && (
               <button

@@ -25,8 +25,8 @@ describe("Menu Page", () => {
 
   it("renders buffet dinner items", () => {
     render(<MenuPage />);
-    expect(screen.getByText("Marry Me Chicken")).toBeInTheDocument();
-    expect(screen.getByText("Penne Pasta with Marinara & Meatballs")).toBeInTheDocument();
+    expect(screen.getByText("Roasted Red Pepper, Spinach, and Mozzarella Stuffed Chicken")).toBeInTheDocument();
+    expect(screen.getByText("Spaghetti and Meatballs")).toBeInTheDocument();
   });
 
   it("renders accompaniments", () => {

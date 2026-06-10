@@ -179,13 +179,6 @@ export default function AdminGuestsPage() {
                 {/* Expanded detail */}
                 {isOpen && (
                   <div className="border-t border-gray-100 bg-gray-50 px-5 py-4">
-                    <p className="mb-3 text-xs text-gray-500">
-                      Access Code:{" "}
-                      <span className="font-mono font-semibold text-sky-800">
-                        {family.access_code}
-                      </span>
-                    </p>
-
                     <div className="space-y-2">
                       {family.members.map((m) => (
                         <div

@@ -24,7 +24,7 @@ export async function PUT(req) {
     return NextResponse.json({ error: "Missing key_name or value" }, { status: 400 });
   }
 
-  const allowed = ["rsvp_deadline", "wedding_budget"];
+  const allowed = ["rsvp_deadline", "wedding_budget", "guest_access_code"];
   if (!allowed.includes(body.key_name)) {
     return NextResponse.json({ error: "Invalid setting key" }, { status: 400 });
   }

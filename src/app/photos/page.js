@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import FamilyFinder from "@/components/FamilyFinder";
 
 const CATEGORIES = ["all", "engagement", "wedding", "guest"];
 
@@ -12,7 +13,8 @@ export default function PhotoGalleryPage() {
 
   // Upload form state
   const [showUpload, setShowUpload] = useState(false);
-  const [accessCode, setAccessCode] = useState("");
+  const [groupId, setGroupId] = useState(null);
+  const [familyName, setFamilyName] = useState("");
   const [caption, setCaption] = useState("");
   const [file, setFile] = useState(null);
   const [uploading, setUploading] = useState(false);
@@ -44,14 +46,43 @@ export default function PhotoGalleryPage() {
     fetchPhotos(category);
   }, [category, fetchPhotos]);
 
+  // Reuse the family the guest already identified as this session.
+  useEffect(() => {
+    let active = true;
+    fetch("/api/guest-group")
+      .then((r) => r.json())
+      .then((json) => {
+        if (active && json.ok && json.group) {
+          setGroupId(json.group.group_id);
+          setFamilyName(json.group.family_name);
+        }
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  function handleSelected(payload) {
+    setGroupId(payload.group.group_id);
+    setFamilyName(payload.group.family_name);
+    setUploadMsg("");
+  }
+
+  async function switchFamily() {
+    await fetch("/api/guest-group", { method: "DELETE" }).catch(() => {});
+    setGroupId(null);
+    setFamilyName("");
+  }
+
   async function handleUpload(e) {
     e.preventDefault();
-    if (!file) {
-      setUploadMsg("Please select a file");
+    if (!groupId) {
+      setUploadMsg("Please find your name first");
       return;
     }
-    if (!accessCode.trim()) {
-      setUploadMsg("Please enter your access code");
+    if (!file) {
+      setUploadMsg("Please select a file");
       return;
     }
 
@@ -60,7 +91,7 @@ export default function PhotoGalleryPage() {
     try {
       const fd = new FormData();
       fd.append("file", file);
-      fd.append("access_code", accessCode.trim());
+      fd.append("group_id", String(groupId));
       fd.append("caption", caption.trim());
 
       const res = await fetch("/api/photos/upload", {
@@ -129,61 +160,73 @@ export default function PhotoGalleryPage() {
             <h2 className="font-[family-name:var(--font-cormorant)] text-2xl text-sky-900 mb-4">
               Share Your Photo
             </h2>
-            <form onSubmit={handleUpload} className="space-y-4">
-              <div>
-                <label className="block text-sm font-semibold text-sky-800 mb-1">
-                  Access Code <span className="text-red-500">*</span>
-                </label>
-                <input
-                  className="w-full rounded-lg border-2 border-sky-400 px-4 py-3 focus:border-sky-600 focus:ring-2 focus:ring-sky-200 transition-all duration-200"
-                  value={accessCode}
-                  onChange={(e) => setAccessCode(e.target.value)}
-                  placeholder="e.g. ABC123"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-sky-800 mb-1">
-                  Photo <span className="text-red-500">*</span>
-                </label>
-                <input
-                  id="photo-file-input"
-                  type="file"
-                  accept="image/jpeg,image/png,image/webp"
-                  onChange={(e) => setFile(e.target.files?.[0] || null)}
-                  className="w-full text-sm text-gray-600 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-sky-100 file:text-sky-800 hover:file:bg-sky-200 file:cursor-pointer"
-                />
-                <p className="text-xs text-gray-400 mt-1">JPEG, PNG, or WebP. Max 10 MB.</p>
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-sky-800 mb-1">
-                  Caption
-                </label>
-                <input
-                  className="w-full rounded-lg border-2 border-sky-400 px-4 py-3 focus:border-sky-600 focus:ring-2 focus:ring-sky-200 transition-all duration-200"
-                  value={caption}
-                  onChange={(e) => setCaption(e.target.value)}
-                  placeholder="Add a caption..."
-                />
-              </div>
-              <button
-                type="submit"
-                disabled={uploading}
-                className="w-full cursor-pointer rounded-lg bg-sky-800 px-6 py-3 text-lg font-bold text-white hover:bg-sky-900 hover:scale-[1.02] transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {uploading ? "Uploading..." : "Upload"}
-              </button>
-              {uploadMsg && (
-                <div
-                  className={`p-3 rounded text-sm font-medium ${
-                    uploadMsg.includes("uploaded")
-                      ? "bg-green-50 text-green-700 border-l-4 border-green-400"
-                      : "bg-red-50 text-red-700 border-l-4 border-red-400"
-                  }`}
-                >
-                  {uploadMsg}
+
+            {!groupId ? (
+              <>
+                <p className="text-gray-600 text-sm mb-4">
+                  Find your name so we know who shared the photo.
+                </p>
+                <FamilyFinder onSelected={handleSelected} />
+              </>
+            ) : (
+              <form onSubmit={handleUpload} className="space-y-4">
+                <div className="flex items-center justify-between rounded-lg bg-sky-50 border border-sky-200 px-4 py-2">
+                  <p className="text-sm text-sky-800">
+                    Uploading as the <strong>{familyName}</strong> family
+                  </p>
+                  <button
+                    type="button"
+                    onClick={switchFamily}
+                    className="cursor-pointer text-xs text-sky-600 hover:text-sky-800 underline"
+                  >
+                    Not you?
+                  </button>
                 </div>
-              )}
-            </form>
+                <div>
+                  <label className="block text-sm font-semibold text-sky-800 mb-1">
+                    Photo <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    id="photo-file-input"
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    onChange={(e) => setFile(e.target.files?.[0] || null)}
+                    className="w-full text-sm text-gray-600 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-sky-100 file:text-sky-800 hover:file:bg-sky-200 file:cursor-pointer"
+                  />
+                  <p className="text-xs text-gray-400 mt-1">JPEG, PNG, or WebP. Max 10 MB.</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-sky-800 mb-1">
+                    Caption
+                  </label>
+                  <input
+                    className="w-full rounded-lg border-2 border-sky-400 px-4 py-3 focus:border-sky-600 focus:ring-2 focus:ring-sky-200 transition-all duration-200"
+                    value={caption}
+                    onChange={(e) => setCaption(e.target.value)}
+                    placeholder="Add a caption..."
+                  />
+                </div>
+                <button
+                  type="submit"
+                  disabled={uploading}
+                  className="w-full cursor-pointer rounded-lg bg-sky-800 px-6 py-3 text-lg font-bold text-white hover:bg-sky-900 hover:scale-[1.02] transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {uploading ? "Uploading..." : "Upload"}
+                </button>
+              </form>
+            )}
+
+            {uploadMsg && (
+              <div
+                className={`mt-4 p-3 rounded text-sm font-medium ${
+                  uploadMsg.includes("uploaded")
+                    ? "bg-green-50 text-green-700 border-l-4 border-green-400"
+                    : "bg-red-50 text-red-700 border-l-4 border-red-400"
+                }`}
+              >
+                {uploadMsg}
+              </div>
+            )}
           </div>
         )}
 

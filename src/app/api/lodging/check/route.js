@@ -1,24 +1,19 @@
 import { NextResponse } from "next/server";
 import pool from "@/lib/db";
+import { parseGroupId, readGuestGroupId } from "@/lib/groups";
 
-// GET — check if a family already has a lodging reservation
+// GET /api/lodging/check?group_id=<id>
+// Check whether a family already has a lodging reservation.
 export async function GET(req) {
-  const code = new URL(req.url).searchParams.get("code");
-  if (!code) return NextResponse.json({ ok: false, error: "Missing code" }, { status: 400 });
+  const { searchParams } = new URL(req.url);
+  const groupId = parseGroupId(searchParams.get("group_id")) || readGuestGroupId(req);
+  if (!groupId) return NextResponse.json({ ok: false, error: "Missing group" }, { status: 400 });
 
   const conn = await pool.getConnection();
   try {
-    const [groups] = await conn.execute(
-      `SELECT group_id FROM \`groups\` WHERE access_code = ? LIMIT 1`,
-      [code.trim()]
-    );
-    if (!groups.length) {
-      return NextResponse.json({ ok: true, hasReservation: false });
-    }
-
     const [reservations] = await conn.execute(
       `SELECT id FROM lodging_reservations WHERE group_id = ? LIMIT 1`,
-      [groups[0].group_id]
+      [groupId]
     );
 
     return NextResponse.json({ ok: true, hasReservation: reservations.length > 0 });

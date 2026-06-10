@@ -1,15 +1,16 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import FamilyFinder from "@/components/FamilyFinder";
 
 export default function AccommodationsPage() {
   const [embeds, setEmbeds] = useState([]);
 
   const [reservingEmbed, setReservingEmbed] = useState(null); // { id, embed_id } of the listing being reserved
-  const [accessCode, setAccessCode] = useState("");
+  const [identityGroup, setIdentityGroup] = useState(null);   // remembered family for the session
   const [codeError, setCodeError] = useState(null);
   const [loadingGroup, setLoadingGroup] = useState(false);
-  const [group, setGroup] = useState(null);          // { group_id, family_name, members }
+  const [group, setGroup] = useState(null);          // { group, members } chosen for this reservation
   const [selectedIds, setSelectedIds] = useState([]); // user_ids of selected guests
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState(null);
@@ -39,6 +40,20 @@ export default function AccommodationsPage() {
       });
   }, []);
 
+  // Reuse the family the guest already identified as this session.
+  useEffect(() => {
+    let active = true;
+    fetch("/api/guest-group")
+      .then((r) => r.json())
+      .then((json) => {
+        if (active && json.ok && json.group) setIdentityGroup(json);
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, []);
+
   useEffect(() => {
     if (embeds.length > 0) {
       loadAirbnbSDK();
@@ -49,12 +64,15 @@ export default function AccommodationsPage() {
   // open the modal for a specific listing
   function openReserve(embed) {
     setReservingEmbed(embed);
-    setAccessCode("");
     setCodeError(null);
     setGroup(null);
     setSelectedIds([]);
     setSubmitError(null);
     setSubmitSuccess(false);
+    // If we already know who they are, skip straight to the reservation check.
+    if (identityGroup) {
+      proceedWithGroup(identityGroup);
+    }
   }
 
   // Called only by Cancel — never modifies reservedEmbedIds
@@ -70,22 +88,15 @@ export default function AccommodationsPage() {
     setReservingEmbed(null);
   }
 
-  // look up family by access code and check if they already have a reservation
-  async function lookupCode() {
+  // Confirm a family can reserve (no existing reservation) and move to guest selection.
+  async function proceedWithGroup(payload) {
     setCodeError(null);
     setLoadingGroup(true);
     try {
-      const [groupRes, checkRes] = await Promise.all([
-        fetch(`/api/groups?code=${encodeURIComponent(accessCode.trim())}`),
-        fetch(`/api/lodging/check?code=${encodeURIComponent(accessCode.trim())}`),
-      ]);
-      const json = await groupRes.json();
+      const checkRes = await fetch(
+        `/api/lodging/check?group_id=${encodeURIComponent(payload.group.group_id)}`
+      );
       const check = await checkRes.json();
-
-      if (!json.ok) {
-        setCodeError(json.error || "Invalid access code");
-        return;
-      }
       if (!check.ok) {
         setCodeError(check.error || "Could not verify reservation status. Please try again.");
         return;
@@ -94,15 +105,18 @@ export default function AccommodationsPage() {
         setCodeError("Your family already has a reservation at one of the listings.");
         return;
       }
-
-      setGroup(json);
-      // select all members by default
-      setSelectedIds(json.members.map((m) => m.user_id));
+      setGroup(payload);
+      setSelectedIds(payload.members.map((m) => m.user_id));
     } catch {
       setCodeError("Something went wrong. Please try again.");
     } finally {
       setLoadingGroup(false);
     }
+  }
+
+  function handleSelected(payload) {
+    setIdentityGroup(payload);
+    proceedWithGroup(payload);
   }
 
   function toggleMember(uid) {
@@ -124,7 +138,7 @@ export default function AccommodationsPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          access_code: accessCode.trim(),
+          group_id: group.group.group_id,
           lodging_embed_id: reservingEmbed.id,
           guest_ids: selectedIds,
         }),
@@ -261,42 +275,27 @@ export default function AccommodationsPage() {
                 </div>
 
               ) : !group ? (
-                /* Step 1: Enter access code */
+                /* Step 1: Identify the family */
                 <>
                   <div className="text-center mb-6">
                     <h2 className="font-[family-name:var(--font-cormorant)] text-3xl text-sky-900 mb-1">
                       Reserve This Listing
                     </h2>
-                    <p className="text-gray-500 text-sm">Enter your access code to get started</p>
+                    <p className="text-gray-500 text-sm">Find your name to get started</p>
                   </div>
 
                   <div className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-semibold text-sky-800 mb-2">
-                        Access Code
-                      </label>
-                      <input
-                        className="w-full rounded-lg border-2 border-sky-400 px-4 py-3 text-lg focus:border-sky-600 focus:ring-2 focus:ring-sky-200 transition-all duration-200"
-                        value={accessCode}
-                        onChange={(e) => setAccessCode(e.target.value)}
-                        onKeyDown={(e) => e.key === "Enter" && lookupCode()}
-                        placeholder="e.g. ABC123"
-                      />
-                    </div>
+                    {loadingGroup ? (
+                      <p className="text-center text-gray-500 py-4">Checking your reservation…</p>
+                    ) : (
+                      <FamilyFinder onSelected={handleSelected} />
+                    )}
 
                     {codeError && (
                       <div className="bg-red-50 border-l-4 border-red-400 p-3 rounded">
                         <p className="text-red-700 text-sm font-medium">{codeError}</p>
                       </div>
                     )}
-
-                    <button
-                      onClick={lookupCode}
-                      disabled={loadingGroup || !accessCode.trim()}
-                      className="cursor-pointer w-full rounded-lg bg-sky-800 px-6 py-3 text-sm font-bold text-white hover:bg-sky-900 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      {loadingGroup ? "Looking up..." : "Continue"}
-                    </button>
 
                     <button
                       onClick={cancelModal}
