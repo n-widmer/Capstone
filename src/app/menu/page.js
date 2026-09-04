@@ -51,9 +51,21 @@ export default function MenuPage() {
 
       {/* The printed menu */}
       <Reveal className="mx-auto max-w-2xl">
-        <Card tone="paper" inner="relative px-7 py-14 text-center sm:px-14 sm:py-16">
+        <Card tone="paper" inner="relative overflow-hidden px-7 py-14 text-center sm:px-14 sm:py-16">
           <span
             className="pointer-events-none absolute inset-3 rounded-[1.1rem] border border-ink/15"
+            aria-hidden="true"
+          />
+          <img
+            src="/art/sprig.jpg"
+            alt=""
+            className="pointer-events-none absolute -bottom-2 -left-4 w-40 mix-blend-multiply opacity-90 sm:w-52"
+            aria-hidden="true"
+          />
+          <img
+            src="/art/sprig.jpg"
+            alt=""
+            className="pointer-events-none absolute -bottom-2 -right-4 w-40 -scale-x-100 mix-blend-multiply opacity-90 sm:w-52"
             aria-hidden="true"
           />
           {COURSES.map((course, i) => (

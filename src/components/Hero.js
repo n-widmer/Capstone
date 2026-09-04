@@ -1,16 +1,17 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import Image from "next/image";
 import { motion, useScroll, useTransform, useReducedMotion } from "framer-motion";
 import { Button } from "@/components/ui";
+import { introPending } from "@/components/Preloader";
 import { DATE_LABEL } from "@/lib/wedding";
 
 const EASE = [0.16, 1, 0.3, 1];
 const WORDS = ["Tori", "&", "Connor"];
 
 // The names rise out of a mask one letter at a time.
-function Names({ reduce }) {
+function Names({ reduce, hold }) {
   let index = 0;
   return (
     <h1
@@ -28,7 +29,7 @@ function Names({ reduce }) {
                 className={`inline-block ${word === "&" ? "not-italic text-ink-soft" : ""}`}
                 initial={reduce ? false : { y: "110%", opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
-                transition={{ duration: 1.1, delay: 0.35 + i * 0.045, ease: EASE }}
+                transition={{ duration: 1.1, delay: hold + 0.35 + i * 0.045, ease: EASE }}
               >
                 {ch}
               </motion.span>
@@ -43,6 +44,8 @@ function Names({ reduce }) {
 export default function Hero() {
   const ref = useRef(null);
   const reduce = useReducedMotion();
+  // On the first page of a visit the preloader plays first; hold the entrance.
+  const [hold] = useState(() => (introPending() ? 1.4 : 0));
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end start"] });
   const photoY = useTransform(scrollYProgress, [0, 1], ["0%", reduce ? "0%" : "28%"]);
   const textY = useTransform(scrollYProgress, [0, 1], ["0%", reduce ? "0%" : "-40%"]);
@@ -56,7 +59,7 @@ export default function Hero() {
           className="relative h-full w-full"
           initial={reduce ? false : { scale: 1.1 }}
           animate={{ scale: 1 }}
-          transition={{ duration: 7, ease: EASE }}
+          transition={{ duration: 7, delay: hold, ease: EASE }}
         >
           <Image
             src="/hero-photo.jpg"
@@ -83,18 +86,18 @@ export default function Hero() {
           className="mb-5 text-xs uppercase tracking-[0.35em] text-ink-soft"
           initial={reduce ? false : { opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.9, delay: 0.2, ease: EASE }}
+          transition={{ duration: 0.9, delay: hold + 0.2, ease: EASE }}
         >
           {DATE_LABEL} &middot; Dover, Ohio
         </motion.p>
 
-        <Names reduce={reduce} />
+        <Names reduce={reduce} hold={hold} />
 
         <motion.div
           className="mt-8 flex flex-wrap items-center gap-x-8 gap-y-5 lg:mt-10"
           initial={reduce ? false : { opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1, delay: 1.2, ease: EASE }}
+          transition={{ duration: 1, delay: hold + 1.2, ease: EASE }}
         >
           <p className="max-w-sm text-base leading-relaxed text-ink sm:text-lg">
             We&apos;re getting married, and we would love for you to be there.

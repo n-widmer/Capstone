@@ -53,8 +53,14 @@ function AccessPageContent() {
         transition={{ duration: opening ? 0.65 : 1, ease: EASE }}
         className="relative z-10 w-full max-w-md"
       >
-        <Card inner="px-7 py-10 text-center sm:px-10 sm:py-12">
-          <p className="text-xs uppercase tracking-[0.3em] text-ink-soft">You&apos;re invited</p>
+        <Card inner="px-7 pb-10 pt-6 text-center sm:px-10 sm:pb-12">
+          <img
+            src="/art/bouquet.jpg"
+            alt=""
+            className="mx-auto h-44 w-auto mix-blend-multiply sm:h-52"
+            aria-hidden="true"
+          />
+          <p className="mt-2 text-xs uppercase tracking-[0.3em] text-ink-soft">You&apos;re invited</p>
           <h1 className="mt-4 font-display text-5xl font-light italic leading-none text-ink sm:text-6xl">
             Tori <span className="not-italic text-ink-soft">&amp;</span> Connor
           </h1>

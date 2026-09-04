@@ -123,7 +123,7 @@ export default function FamilyFinder({ onSelected, autoFocus = false }) {
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: i * 0.05, ease: EASE }}
-                className="w-full cursor-pointer rounded-2xl bg-white px-5 py-4 text-left ring-1 ring-ink/10 transition-all duration-500 ease-[var(--ease-soft)] hover:bg-dusk-soft hover:ring-dusk active:scale-[0.99] disabled:opacity-60"
+                className="w-full cursor-pointer rounded-2xl bg-card px-5 py-4 text-left ring-1 ring-ink/10 transition-all duration-500 ease-[var(--ease-soft)] hover:bg-dusk-soft hover:ring-dusk active:scale-[0.99] disabled:opacity-60"
               >
                 <p className="font-display text-2xl text-ink">{m.family_name} Family</p>
                 <p className="mt-0.5 text-sm text-ink-soft">{m.members.join(", ")}</p>

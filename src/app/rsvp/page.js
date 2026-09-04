@@ -20,7 +20,7 @@ function MemberRow({ name, checked, disabled, onChange }) {
   return (
     <label
       className={`flex cursor-pointer items-center gap-4 rounded-2xl px-5 py-4 ring-1 transition-all duration-500 ease-[var(--ease-soft)] ${
-        checked ? "bg-dusk-soft ring-dusk" : "bg-white ring-ink/10 hover:ring-ink/25"
+        checked ? "bg-dusk-soft ring-dusk" : "bg-card ring-ink/10 hover:ring-ink/25"
       } ${disabled ? "cursor-default" : ""}`}
     >
       <input

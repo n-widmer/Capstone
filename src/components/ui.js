@@ -123,8 +123,8 @@ export function Card({ children, className = "", inner = "", tone = "white" }) {
       : tone === "dusk"
         ? "bg-dusk-soft"
         : tone === "paper"
-          ? "bg-sky-50"
-          : "bg-white";
+          ? "bg-[#f4f9fd]"
+          : "bg-card";
   return (
     <div className={`rounded-[1.75rem] bg-ink/[0.04] p-1.5 ring-1 ring-ink/10 shadow-lift ${className}`}>
       <div
@@ -137,7 +137,7 @@ export function Card({ children, className = "", inner = "", tone = "white" }) {
 }
 
 export const inputClass =
-  "w-full rounded-xl border border-linen bg-white px-4 py-3 text-base text-ink placeholder:text-ink-soft/60 transition-[border-color,box-shadow] duration-500 ease-[var(--ease-soft)] focus:border-dusk focus:outline-none focus:ring-4 focus:ring-dusk/25 disabled:cursor-not-allowed disabled:opacity-60";
+  "w-full rounded-xl border border-linen bg-card px-4 py-3 text-base text-ink placeholder:text-ink-soft/60 transition-[border-color,box-shadow] duration-500 ease-[var(--ease-soft)] focus:border-dusk focus:outline-none focus:ring-4 focus:ring-dusk/25 disabled:cursor-not-allowed disabled:opacity-60";
 
 export function Field({ label, hint, error, children, className = "" }) {
   return (
@@ -184,7 +184,7 @@ export function Button({
       {arrow && (
         <span
           className={`flex h-8 w-8 items-center justify-center rounded-full transition-transform duration-500 ease-[var(--ease-soft)] group-hover:translate-x-0.5 group-hover:scale-105 ${
-            variant === "primary" ? "bg-white/15" : "bg-ink/5"
+            variant === "primary" ? "bg-card/15" : "bg-ink/5"
           } ${arrow === "up" ? "group-hover:-translate-y-0.5" : ""}`}
         >
           <Icon size={16} weight="light" />
@@ -258,8 +258,13 @@ export function Footer() {
   const pathname = usePathname();
   if (pathname.startsWith("/admin") || pathname === "/access") return null;
   return (
-    <footer className="px-6 pb-10 pt-28 text-center">
-      <Flourish className="mb-8" />
+    <footer className="overflow-hidden px-6 pb-10 pt-28 text-center">
+      <img
+        src="/art/garland.jpg"
+        alt=""
+        className="mx-auto mb-8 h-28 w-auto max-w-none mix-blend-multiply sm:h-36"
+        aria-hidden="true"
+      />
       {/* Quiet admin entrance for the couple. */}
       <Link
         href="/admin/login"

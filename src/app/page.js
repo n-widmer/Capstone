@@ -1,5 +1,6 @@
 import Hero from "@/components/Hero";
 import CountdownTimer from "@/components/CountdownTimer";
+import OurStory from "@/components/OurStory";
 import { Button, Card, Reveal, Flourish, Marquee } from "@/components/ui";
 import { SCHEDULE, VENUE, VENUE_ADDRESS, VENUE_MAPS_URL } from "@/lib/wedding";
 
@@ -12,8 +13,10 @@ export default function Home() {
 
       {/* Countdown */}
       <section className="relative overflow-hidden px-4 py-24 text-center md:py-32">
-        <div
-          className="pointer-events-none absolute left-1/2 top-1/2 h-[28rem] w-[28rem] -translate-x-1/2 -translate-y-1/2 rounded-full bg-white/60 blur-3xl sm:h-[36rem] sm:w-[36rem]"
+        <img
+          src="/art/wash.jpg"
+          alt=""
+          className="pointer-events-none absolute left-1/2 top-1/2 h-[34rem] w-[54rem] max-w-none -translate-x-1/2 -translate-y-1/2 object-cover opacity-80 mix-blend-multiply [mask-image:radial-gradient(closest-side,black_55%,transparent)]"
           aria-hidden="true"
         />
         <Reveal className="relative">
@@ -23,6 +26,8 @@ export default function Home() {
           <CountdownTimer />
         </Reveal>
       </section>
+
+      <OurStory />
 
       {/* Venue and the day */}
       <section

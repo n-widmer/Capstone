@@ -15,3 +15,11 @@ export const SCHEDULE = [
   { time: "5:30 PM", label: "Dinner" },
   { time: "6:30 PM", label: "Cake Cutting" },
 ];
+
+// Our Story. Entries without a body render as "coming soon" until the couple
+// sends their words; `photo` is optional.
+export const STORY = [
+  { title: "How we met", date: "", body: "", photo: null },
+  { title: "The proposal", date: "", body: "", photo: "/hero-photo.jpg" },
+  { title: "The wedding", date: DATE_LABEL, body: `${VENUE}, Dover, Ohio. Ceremony at 3:30 PM, with dinner and dancing to follow.`, photo: null },
+];

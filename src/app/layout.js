@@ -4,6 +4,7 @@ import { Analytics } from "@vercel/analytics/next";
 import Navigation from "@/components/Navigation";
 import PageTransition from "@/components/PageTransition";
 import FallingTulips from "@/components/FallingTulips";
+import Preloader from "@/components/Preloader";
 import { Footer } from "@/components/ui";
 
 const cormorant = Cormorant_Garamond({
@@ -31,6 +32,7 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en" className={`${cormorant.variable} ${jost.variable}`}>
       <body className="min-h-screen bg-paper text-ink antialiased">
+        <Preloader />
         <FallingTulips />
         <Navigation />
         <PageTransition>{children}</PageTransition>

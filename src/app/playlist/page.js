@@ -233,7 +233,7 @@ export default function PlaylistPage() {
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0 }}
                       transition={{ duration: 0.5, ease: EASE }}
-                      className="flex items-center gap-4 rounded-2xl bg-white px-4 py-3.5 ring-1 ring-ink/10 sm:px-5"
+                      className="flex items-center gap-4 rounded-2xl bg-card px-4 py-3.5 ring-1 ring-ink/10 sm:px-5"
                     >
                       <span
                         className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full font-display text-xl ${
@@ -266,7 +266,7 @@ export default function PlaylistPage() {
                         className={`flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-full transition-all duration-500 ease-[var(--ease-soft)] active:scale-90 ${
                           song.voted_by_me
                             ? "bg-ink text-white"
-                            : "bg-white text-ink-soft ring-1 ring-ink/10 hover:text-ink hover:ring-ink/30"
+                            : "bg-card text-ink-soft ring-1 ring-ink/10 hover:text-ink hover:ring-ink/30"
                         }`}
                         aria-pressed={!!song.voted_by_me}
                         aria-label={song.voted_by_me ? "Remove your vote" : "Vote for this song"}

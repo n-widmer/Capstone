@@ -314,7 +314,7 @@ export default function AccommodationsPage() {
                           <label
                             key={m.user_id}
                             className={`flex cursor-pointer items-center gap-3 rounded-2xl px-4 py-3 ring-1 transition-all duration-500 ease-[var(--ease-soft)] ${
-                              checked ? "bg-dusk-soft ring-dusk" : "bg-white ring-ink/10 hover:ring-ink/25"
+                              checked ? "bg-dusk-soft ring-dusk" : "bg-card ring-ink/10 hover:ring-ink/25"
                             }`}
                           >
                             <input

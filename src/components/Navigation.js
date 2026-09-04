@@ -44,7 +44,7 @@ export default function Navigation() {
   return (
     <header className="fixed inset-x-0 top-0 z-40 px-3 pt-3 sm:px-4 sm:pt-4">
       <nav
-        className="mx-auto flex h-16 max-w-5xl items-center justify-between rounded-full bg-white/80 pl-6 pr-3 ring-1 ring-ink/10 shadow-lift backdrop-blur-xl"
+        className="mx-auto flex h-16 max-w-5xl items-center justify-between rounded-full bg-card/80 pl-6 pr-3 ring-1 ring-ink/10 shadow-lift backdrop-blur-xl"
         aria-label="Main"
       >
         <Link

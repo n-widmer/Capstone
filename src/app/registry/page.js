@@ -27,7 +27,7 @@ function StoreCard({ store }) {
       rel="noopener noreferrer"
       className="group block rounded-[1.75rem] bg-ink/[0.04] p-1.5 ring-1 ring-ink/10 shadow-lift transition-transform duration-700 ease-[var(--ease-soft)] hover:-translate-y-1"
     >
-      <div className="flex h-full flex-col items-center rounded-[calc(1.75rem-0.375rem)] bg-white px-8 py-10 text-center shadow-[inset_0_1px_0_rgb(255_255_255/0.8)]">
+      <div className="flex h-full flex-col items-center rounded-[calc(1.75rem-0.375rem)] bg-card px-8 py-10 text-center shadow-[inset_0_1px_0_rgb(255_255_255/0.8)]">
         <div className="relative h-16 w-32">
           <Image src={store.logo} alt={`${store.name} logo`} fill className="object-contain" />
         </div>
@@ -35,7 +35,7 @@ function StoreCard({ store }) {
         <p className="mt-2 text-sm text-ink-soft">{store.blurb}</p>
         <span className="mt-7 inline-flex items-center gap-3 rounded-full bg-ink py-3 pl-6 pr-2 text-sm font-medium tracking-wide text-white transition-all duration-500 ease-[var(--ease-soft)] group-hover:bg-ink/90">
           <span>{store.cta}</span>
-          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white/15 transition-transform duration-500 ease-[var(--ease-soft)] group-hover:-translate-y-0.5 group-hover:translate-x-0.5">
+          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-card/15 transition-transform duration-500 ease-[var(--ease-soft)] group-hover:-translate-y-0.5 group-hover:translate-x-0.5">
             <ArrowUpRight size={16} weight="light" />
           </span>
         </span>
@@ -74,7 +74,7 @@ export default function RegistryPage() {
             className="group block"
           >
             <Card tone="butter" inner="flex flex-col items-center gap-6 px-8 py-10 text-center md:flex-row md:text-left md:px-12">
-              <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-white text-ink ring-1 ring-ink/10">
+              <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-card text-ink ring-1 ring-ink/10">
                 <House size={28} weight="light" />
               </span>
               <div className="flex-1">

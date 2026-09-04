@@ -310,7 +310,7 @@ export default function PhotoGalleryPage() {
               <button
                 type="button"
                 onClick={() => setLightbox(null)}
-                className="absolute right-5 top-5 flex h-11 w-11 cursor-pointer items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20"
+                className="absolute right-5 top-5 flex h-11 w-11 cursor-pointer items-center justify-center rounded-full bg-card/10 text-white transition-colors hover:bg-card/20"
                 aria-label="Close"
               >
                 <X size={20} weight="light" />
