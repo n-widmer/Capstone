@@ -27,6 +27,11 @@ export default function Navigation() {
 
   useEffect(() => setOpen(false), [pathname]);
 
+  // The landing page is amber; everything else is sky blue.
+  useEffect(() => {
+    document.body.classList.toggle("amber", pathname === "/");
+  }, [pathname]);
+
   useEffect(() => {
     document.body.style.overflow = open ? "hidden" : "";
     return () => {

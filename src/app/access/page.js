@@ -3,7 +3,6 @@
 import { Suspense, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { motion, useReducedMotion } from "framer-motion";
-import FallingTulips from "@/components/FallingTulips";
 import { Button, Card, Field, Flourish, Notice, inputClass, EASE } from "@/components/ui";
 import { DATE_LABEL } from "@/lib/wedding";
 
@@ -15,6 +14,7 @@ function AccessPageContent() {
   const [code, setCode] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [opening, setOpening] = useState(false);
 
   async function submitAccessCode(e) {
     e?.preventDefault();
@@ -36,17 +36,21 @@ function AccessPageContent() {
       return;
     }
 
-    window.location.assign(next);
+    // Let the card lift away before the page turns.
+    setOpening(true);
+    setTimeout(() => window.location.assign(next), reduce ? 0 : 650);
   }
 
   return (
     <main className="relative flex min-h-[100dvh] items-center justify-center px-4 py-16">
-      <FallingTulips count={14} />
-
       <motion.div
         initial={reduce ? false : { opacity: 0, y: 24, filter: "blur(6px)" }}
-        animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-        transition={{ duration: 1, ease: EASE }}
+        animate={
+          opening
+            ? { opacity: 0, y: -40, scale: 0.96, filter: "blur(8px)" }
+            : { opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }
+        }
+        transition={{ duration: opening ? 0.65 : 1, ease: EASE }}
         className="relative z-10 w-full max-w-md"
       >
         <Card inner="px-7 py-10 text-center sm:px-10 sm:py-12">

@@ -1,6 +1,6 @@
 import Image from "next/image";
 import { ArrowUpRight, House } from "@phosphor-icons/react/dist/ssr";
-import { Card, Flourish, PageHeader, Reveal } from "@/components/ui";
+import { Card, Flourish, PageHeader, Reveal, Tilt } from "@/components/ui";
 
 const STORES = [
   {
@@ -58,7 +58,9 @@ export default function RegistryPage() {
         <div className="grid gap-6 md:grid-cols-2">
           {STORES.map((store, i) => (
             <Reveal key={store.name} delay={i * 0.05}>
-              <StoreCard store={store} />
+              <Tilt>
+                <StoreCard store={store} />
+              </Tilt>
             </Reveal>
           ))}
         </div>

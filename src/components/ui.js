@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { motion, useReducedMotion } from "framer-motion";
+import { motion, useReducedMotion, useMotionValue, useSpring, useTransform } from "framer-motion";
 import { ArrowRight, ArrowUpRight } from "@phosphor-icons/react";
 import { COUPLE, DATE_LABEL, VENUE } from "@/lib/wedding";
 
@@ -37,16 +37,81 @@ export function Flourish({ className = "" }) {
   );
 }
 
-export function PageHeader({ title, subtitle, children }) {
+// Page title with a giant faint echo of itself behind it.
+export function PageHeader({ title, subtitle, watermark, children }) {
   return (
-    <Reveal className="mx-auto max-w-2xl px-4 pt-14 pb-12 text-center md:pt-20 md:pb-16">
-      <h1 className="font-display text-5xl font-light leading-[1.05] text-ink md:text-7xl">{title}</h1>
-      {subtitle && (
-        <p className="mt-4 font-display text-xl italic text-ink-soft md:text-2xl">{subtitle}</p>
-      )}
+    <div className="overflow-hidden">
+      <Reveal className="relative mx-auto max-w-3xl px-4 pt-16 pb-12 text-center md:pt-24 md:pb-16">
+        <span
+          aria-hidden="true"
+          className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-[58%] select-none whitespace-nowrap font-display text-[9rem] italic leading-none text-ink/[0.05] md:text-[17rem]"
+        >
+          {watermark ?? title}
+        </span>
+        <div className="relative">
+          <h1 className="font-display text-6xl font-light leading-[1.02] text-ink md:text-8xl">{title}</h1>
+          {subtitle && (
+            <p className="mt-4 font-display text-xl italic text-ink-soft md:text-2xl">{subtitle}</p>
+          )}
+          {children}
+          <Flourish className="mt-8" />
+        </div>
+      </Reveal>
+    </div>
+  );
+}
+
+// One slow strip of the essentials. Used once, under the home hero.
+export function Marquee() {
+  const items = [COUPLE, DATE_LABEL, VENUE, "Dover, Ohio"];
+  const row = (key) => (
+    <span key={key} className="flex shrink-0 items-center">
+      {items.map((item) => (
+        <span key={item} className="flex items-center">
+          <span className="px-8 font-display text-2xl italic text-ink md:text-3xl">{item}</span>
+          <img src="/tulips/YellowTulip.png" alt="" className="h-7 w-auto opacity-80" aria-hidden="true" />
+        </span>
+      ))}
+    </span>
+  );
+  return (
+    <div className="relative overflow-hidden border-y border-ink/10 py-5" aria-label={items.join(", ")}>
+      <div className="marquee-track flex w-max">
+        {row("a")}
+        {row("b")}
+      </div>
+    </div>
+  );
+}
+
+// Card that leans toward the pointer. Motion values only, no re-renders.
+export function Tilt({ children, className = "", max = 7 }) {
+  const reduce = useReducedMotion();
+  const px = useMotionValue(0);
+  const py = useMotionValue(0);
+  const rotateX = useSpring(useTransform(py, [-0.5, 0.5], [max, -max]), { stiffness: 160, damping: 18 });
+  const rotateY = useSpring(useTransform(px, [-0.5, 0.5], [-max, max]), { stiffness: 160, damping: 18 });
+
+  function onPointerMove(e) {
+    if (reduce || e.pointerType === "touch") return;
+    const r = e.currentTarget.getBoundingClientRect();
+    px.set((e.clientX - r.left) / r.width - 0.5);
+    py.set((e.clientY - r.top) / r.height - 0.5);
+  }
+  function reset() {
+    px.set(0);
+    py.set(0);
+  }
+
+  return (
+    <motion.div
+      className={className}
+      style={{ rotateX, rotateY, transformPerspective: 1000, transformStyle: "preserve-3d" }}
+      onPointerMove={onPointerMove}
+      onPointerLeave={reset}
+    >
       {children}
-      <Flourish className="mt-8" />
-    </Reveal>
+    </motion.div>
   );
 }
 

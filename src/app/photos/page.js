@@ -17,6 +17,12 @@ import {
   EASE,
 } from "@/components/ui";
 
+// Shown in the gallery until the couple uploads more.
+const BUILT_IN = [
+  { id: "engagement-1", src: "/hero-photo.jpg", caption: "", uploaded_by: "Tori & Connor", category: "engagement" },
+];
+const srcOf = (photo) => photo.src ?? `/api/photos/${photo.id}/image`;
+
 const CATEGORIES = [
   { key: "all", label: "All" },
   { key: "engagement", label: "Engagement" },
@@ -145,6 +151,10 @@ export default function PhotoGalleryPage() {
   }
 
   const uploadOk = uploadMsg.includes("uploaded");
+  const shown = [
+    ...BUILT_IN.filter((p) => category === "all" || p.category === category),
+    ...photos,
+  ];
 
   return (
     <main className="min-h-screen px-4 pb-16">
@@ -247,7 +257,7 @@ export default function PhotoGalleryPage() {
         )}
 
         {/* Empty */}
-        {!loading && photos.length === 0 && (
+        {!loading && shown.length === 0 && (
           <Reveal className="mx-auto max-w-md py-16 text-center">
             <p className="font-display text-3xl font-light italic text-ink">Nothing here yet</p>
             <p className="mt-3 text-sm text-ink-soft">
@@ -257,9 +267,9 @@ export default function PhotoGalleryPage() {
         )}
 
         {/* Masonry */}
-        {!loading && photos.length > 0 && (
+        {!loading && shown.length > 0 && (
           <div className="columns-2 gap-4 space-y-4 md:columns-3 lg:columns-4">
-            {photos.map((photo, i) => (
+            {shown.map((photo, i) => (
               <motion.button
                 key={photo.id}
                 type="button"
@@ -270,7 +280,7 @@ export default function PhotoGalleryPage() {
                 onClick={() => setLightbox(photo)}
               >
                 <img
-                  src={`/api/photos/${photo.id}/image`}
+                  src={srcOf(photo)}
                   alt={photo.caption || "Wedding photo"}
                   className="block w-full transition-transform duration-1000 ease-[var(--ease-soft)] group-hover:scale-[1.03]"
                   loading="lazy"
@@ -314,7 +324,7 @@ export default function PhotoGalleryPage() {
                 onClick={(e) => e.stopPropagation()}
               >
                 <img
-                  src={`/api/photos/${lightbox.id}/image`}
+                  src={srcOf(lightbox)}
                   alt={lightbox.caption || "Wedding photo"}
                   className="max-h-[82vh] max-w-full rounded-2xl object-contain"
                 />

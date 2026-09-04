@@ -91,3 +91,30 @@
     transform: rotate(4deg) translateX(4px);
   }
 }
+
+/* Landing page is amber; Navigation toggles this class on the body. */
+body.amber {
+  background-color: var(--color-butter);
+}
+
+@keyframes fall {
+  from {
+    transform: translate3d(0, -14vh, 0);
+  }
+  to {
+    transform: translate3d(0, 114vh, 0);
+  }
+}
+.fall {
+  animation: fall var(--fall-duration, 30s) linear infinite;
+  animation-delay: var(--fall-delay, 0s);
+}
+
+@keyframes marquee {
+  to {
+    transform: translateX(-50%);
+  }
+}
+.marquee-track {
+  animation: marquee 48s linear infinite;
+}

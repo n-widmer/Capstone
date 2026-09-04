@@ -51,11 +51,18 @@ export default function MenuPage() {
 
       {/* The printed menu */}
       <Reveal className="mx-auto max-w-2xl">
-        <Card tone="paper" inner="px-7 py-12 text-center sm:px-14 sm:py-16">
+        <Card tone="paper" inner="relative px-7 py-14 text-center sm:px-14 sm:py-16">
+          <span
+            className="pointer-events-none absolute inset-3 rounded-[1.1rem] border border-ink/15"
+            aria-hidden="true"
+          />
           {COURSES.map((course, i) => (
-            <section key={course.title} className={i > 0 ? "mt-12" : ""}>
-              <h2 className="font-display text-3xl font-light text-ink md:text-4xl">{course.title}</h2>
-              {course.note && <p className="mt-1 text-sm italic text-ink-soft">{course.note}</p>}
+            <section key={course.title} className={i > 0 ? "mt-14" : ""}>
+              <h2 className="font-display text-2xl font-bold uppercase tracking-[0.18em] text-ink md:text-3xl">
+                {course.title}
+              </h2>
+              <span className="mx-auto mt-3 block h-px w-10 bg-ink/30" aria-hidden="true" />
+              {course.note && <p className="mt-3 text-sm italic text-ink-soft">{course.note}</p>}
               <ul className="mt-5 space-y-2.5">
                 {course.items.map((item) => (
                   <li key={item} className="font-display text-xl leading-snug text-ink md:text-2xl">
@@ -75,7 +82,7 @@ export default function MenuPage() {
       <div className="mx-auto mt-10 grid max-w-2xl gap-6 md:grid-cols-2">
         <Reveal>
           <Card inner="h-full px-7 py-8">
-            <h3 className="font-display text-2xl text-ink">Open Bar</h3>
+            <h3 className="font-display text-2xl font-semibold text-ink">Open Bar</h3>
             <p className="mt-2 text-sm leading-relaxed text-ink-soft">
               Complimentary beer, wine, and cocktails. Guests 21+ will be ID&apos;d.
             </p>
@@ -83,7 +90,7 @@ export default function MenuPage() {
         </Reveal>
         <Reveal delay={0.05}>
           <Card tone="dusk" inner="h-full px-7 py-8">
-            <h3 className="font-display text-2xl text-ink">BYOB Welcome!</h3>
+            <h3 className="font-display text-2xl font-semibold text-ink">BYOB Welcome!</h3>
             <p className="mt-2 text-sm leading-relaxed text-ink-soft">
               Feel free to bring your own liquor, beer, or wine. It must be kept behind the bar.
             </p>
