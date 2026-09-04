@@ -1,7 +1,39 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Check } from "@phosphor-icons/react";
 import FamilyFinder from "@/components/FamilyFinder";
+import {
+  Button,
+  Card,
+  Field,
+  Flourish,
+  Notice,
+  PageHeader,
+  Reveal,
+  inputClass,
+  EASE,
+} from "@/components/ui";
+
+function MemberRow({ name, checked, disabled, onChange }) {
+  return (
+    <label
+      className={`flex cursor-pointer items-center gap-4 rounded-2xl px-5 py-4 ring-1 transition-all duration-500 ease-[var(--ease-soft)] ${
+        checked ? "bg-dusk-soft ring-dusk" : "bg-white ring-ink/10 hover:ring-ink/25"
+      } ${disabled ? "cursor-default" : ""}`}
+    >
+      <input
+        type="checkbox"
+        className="h-5 w-5 cursor-pointer rounded"
+        checked={checked}
+        onChange={onChange}
+        disabled={disabled}
+      />
+      <span className="font-display text-2xl text-ink">{name}</span>
+    </label>
+  );
+}
 
 export default function RSVPPage() {
   const [data, setData] = useState(null);
@@ -9,6 +41,8 @@ export default function RSVPPage() {
   const [error, setError] = useState("");
   const [showExisting, setShowExisting] = useState(false);
   const [mode, setMode] = useState("create"); // "create" | "view" | "modify"
+  const [submitting, setSubmitting] = useState(false);
+  const [done, setDone] = useState(null); // null | "submitted" | "updated"
 
   const [attendingIds, setAttendingIds] = useState([]);
   const [plusOneByUser, setPlusOneByUser] = useState({});
@@ -53,6 +87,7 @@ export default function RSVPPage() {
     }
 
     setMode("create");
+    setDone(null);
     setShowExisting(!!json.rsvp?.exists);
   }
 
@@ -83,6 +118,7 @@ export default function RSVPPage() {
     setData(null);
     setShowExisting(false);
     setMode("create");
+    setDone(null);
     setAttendingIds([]);
     setPlusOneByUser({});
     setDietByUser({});
@@ -111,320 +147,347 @@ export default function RSVPPage() {
   async function submit() {
     setError("");
 
-    const emptyPlusOnes = Object.entries(plusOneByUser)
-      .filter(([_, name]) => String(name).trim().length === 0);
+    const emptyPlusOnes = Object.entries(plusOneByUser).filter(
+      ([, name]) => String(name).trim().length === 0
+    );
 
     if (emptyPlusOnes.length > 0) {
       setError("Please enter a name for each selected plus-one (or uncheck it).");
       return;
     }
 
-    const res = await fetch("/api/rsvp", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        group_id: data.group.group_id,
-        attending_user_ids: attendingIds,
-        plus_ones: plusOneByUser,
-        diets: dietByUser,
-        dress_code: dress,
-        song_recommendations: songTitle,
-        song_title: songTitle,
-        song_artist: songArtist,
-      }),
-    });
+    setSubmitting(true);
+    try {
+      const res = await fetch("/api/rsvp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          group_id: data.group.group_id,
+          attending_user_ids: attendingIds,
+          plus_ones: plusOneByUser,
+          diets: dietByUser,
+          dress_code: dress,
+          song_recommendations: songTitle,
+          song_title: songTitle,
+          song_artist: songArtist,
+        }),
+      });
 
-    const json = await res.json();
-    if (!json.ok) {
-      setError(json.error || "Submit failed");
-      return;
+      const json = await res.json();
+      if (!json.ok) {
+        setError(json.error || "Submit failed");
+        return;
+      }
+
+      setDone(json.modified ? "updated" : "submitted");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } catch {
+      setError("Something went wrong. Please try again.");
+    } finally {
+      setSubmitting(false);
     }
-
-    alert(json.modified ? "RSVP updated!" : "RSVP submitted!");
   }
 
   // Determine the group members that can bring a plus-one
-  const eligiblePlusOneUsers =
-    (data?.members ?? []).filter(
-      (m) => Number(m.plus_one_allowed) === 1 && attendingIds.includes(m.user_id)
-    );
-
-  // Members who are attending — each can list their own dietary restriction
-  const attendingMembers = (data?.members ?? []).filter((m) =>
-    attendingIds.includes(m.user_id)
+  const eligiblePlusOneUsers = (data?.members ?? []).filter(
+    (m) => Number(m.plus_one_allowed) === 1 && attendingIds.includes(m.user_id)
   );
 
+  // Members who are attending; each can list their own dietary restriction
+  const attendingMembers = (data?.members ?? []).filter((m) => attendingIds.includes(m.user_id));
+
+  const readOnly = mode === "view";
+  const anyoneComing = attendingIds.length > 0;
+
   return (
-    <main className="min-h-screen py-12 px-4">
+    <main className="min-h-screen px-4 pb-16">
+      <PageHeader title="RSVP" subtitle="We can't wait to celebrate with you" />
+
       <div className="mx-auto max-w-2xl">
-        {/* Header */}
-        <div className="text-center mb-12 relative">
-          <div className="absolute inset-0 flex items-center justify-center opacity-5">
-            <div className="text-9xl">💌</div>
-          </div>
-          <h1 className="text-5xl md:text-6xl font-serif text-sky-900 mb-4 relative">
-            RSVP
-          </h1>
-          <div className="w-24 h-1 bg-sky-600 mx-auto mb-4"></div>
-          <p className="text-xl text-gray-600 font-serif italic">
-            We can't wait to celebrate with you!
-          </p>
-        </div>
-
-        {/* Find-your-family Card (shown until a family is selected) */}
+        {/* Find-your-family (shown until a family is selected) */}
         {!data && (
-          <div className="bg-white rounded-xl shadow-2xl border-4 border-double border-sky-400 p-8 mb-8 relative overflow-hidden">
-            {/* Decorative corners */}
-            <div className="absolute top-0 left-0 w-16 h-16 border-t-4 border-l-4 border-sky-300 opacity-50"></div>
-            <div className="absolute bottom-0 right-0 w-16 h-16 border-b-4 border-r-4 border-sky-300 opacity-50"></div>
+          <Reveal>
+            <Card inner="px-6 py-8 sm:px-10 sm:py-10">
+              <div className="mb-6 text-center">
+                <h2 className="font-display text-3xl font-light text-ink">Find your invitation</h2>
+                <p className="mt-2 text-sm text-ink-soft">
+                  Search your name to pull up everyone on your invitation.
+                </p>
+              </div>
 
-            <div className="text-center mb-6">
-              <h2 className="text-2xl font-serif text-sky-800 mb-2">Find Your Invitation</h2>
-              <p className="text-gray-600">Search your name to pull up your group</p>
-            </div>
-
-            {loadingIdentity ? (
-              <p className="text-center text-gray-500 py-4">Loading…</p>
-            ) : (
-              <FamilyFinder onSelected={applyGroup} autoFocus />
-            )}
-          </div>
+              {loadingIdentity ? (
+                <p className="py-4 text-center text-sm text-ink-soft">Loading...</p>
+              ) : (
+                <FamilyFinder onSelected={applyGroup} autoFocus />
+              )}
+            </Card>
+          </Reveal>
         )}
 
-      {showExisting && data && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 z-50">
-          <div className="w-full max-w-md rounded-2xl bg-white shadow-2xl border-4 border-sky-400 p-8 relative">
-            <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-sky-700 rounded-full p-4 border-4 border-white shadow-lg">
-              <span className="text-3xl">📋</span>
-            </div>
-
-            <div className="mt-8 text-center">
-              <h2 className="text-2xl font-serif text-sky-900 font-semibold mb-3">
-                RSVP Already Submitted
-              </h2>
-              <p className="text-gray-700 leading-relaxed">
-                We already have an RSVP for the <b className="text-sky-800">{data.group.family_name}</b> family
-                {data.rsvp.submitted_by && (
-                  <>
-                    {" "}submitted by <b className="text-sky-700">{data.rsvp.submitted_by}</b>
-                  </>
-                )}
-                .
-              </p>
-            </div>
-
-            <div className="mt-6 flex gap-3">
-              <button
-                className="flex-1 cursor-pointer rounded-lg border-2 border-sky-500 px-4 py-3 font-semibold text-sky-700 hover:bg-sky-50 hover:scale-[1.02] transition-all duration-200"
-                onClick={() => {
-                  setMode("view");
-                  setShowExisting(false);
-                }}
+        {/* Already-submitted prompt */}
+        <AnimatePresence>
+          {showExisting && data && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-50 flex items-center justify-center bg-ink/40 p-4 backdrop-blur-sm"
+            >
+              <motion.div
+                initial={{ opacity: 0, y: 16, scale: 0.98 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: 8, scale: 0.98 }}
+                transition={{ duration: 0.5, ease: EASE }}
+                className="w-full max-w-md"
               >
-                View
-              </button>
-              <button
-                className="flex-1 cursor-pointer rounded-lg bg-sky-800 px-4 py-3 font-bold text-white hover:bg-sky-900 hover:scale-[1.02] transition-all duration-200 shadow-md"
-                onClick={() => {
-                  setMode("modify");
-                  setShowExisting(false);
-                }}
-              >
-                Modify
-              </button>
-            </div>
-
-            <p className="mt-4 text-center text-sm text-gray-500 italic">
-              You can make changes anytime before the deadline
-            </p>
-          </div>
-        </div>
-      )}
-
-      {data && (
-        <section className="space-y-6">
-          {/* Group Members */}
-          <div className="bg-white rounded-xl shadow-lg border-l-4 border-sky-600 p-6">
-            <div className="flex items-start justify-between gap-4 mb-2">
-              <h2 className="text-2xl font-serif text-sky-900">
-                {data.group.family_name} Family
-              </h2>
-              <button
-                onClick={switchFamily}
-                className="cursor-pointer text-sm text-sky-600 hover:text-sky-800 underline whitespace-nowrap mt-1"
-              >
-                Not you?
-              </button>
-            </div>
-            <p className="text-gray-600 mb-4">
-              Who will be joining us?
-            </p>
-
-            <div className="space-y-3">
-              {data.members.map((m) => (
-                <label key={m.user_id} className="flex items-center gap-3 p-3 rounded-lg hover:bg-sky-50 cursor-pointer transition-colors border border-gray-200">
-                  <input
-                    type="checkbox"
-                    className="cursor-pointer w-5 h-5 text-sky-600 rounded focus:ring-sky-500 transition-all duration-200"
-                    checked={attendingIds.includes(m.user_id)}
-                    onChange={() => toggleMember(m.user_id)}
-                    disabled={mode === "view"}
-                  />
-                  <span className="text-lg text-gray-800">{m.name}</span>
-                </label>
-              ))}
-            </div>
-          </div>
-
-          {/* Additional Details */}
-          <div className="bg-white rounded-xl shadow-lg border-l-4 border-sky-500 p-6 space-y-4">
-            {eligiblePlusOneUsers.length > 0 && (
-              <div className="bg-sky-50 p-4 rounded-lg border border-sky-300 space-y-3">
-                <h3 className="font-medium text-sky-900">Plus-ones</h3>
-                <p className="text-sm text-sky-700/70">
-                  If someone is bringing a guest, enter their guest's name.
-                </p>
-
-                {eligiblePlusOneUsers.map((m) => {
-                  const hasEntry = Object.prototype.hasOwnProperty.call(plusOneByUser, m.user_id);
-                  const value = hasEntry ? (plusOneByUser[m.user_id] ?? "") : "";
-
-                  return (
-                    <div key={m.user_id} className="space-y-2">
-                      <label className="flex items-center gap-2 cursor-pointer">
-                        <input
-                          type="checkbox"
-                          className="cursor-pointer w-5 h-5 text-sky-600 rounded focus:ring-sky-500 transition-all duration-200"
-                          checked={hasEntry}
-                          disabled={mode === "view"}
-                          onChange={(e) => {
-                            const isChecked = e.target.checked;
-                            setPlusOneByUser((prev) => {
-                              const next = { ...prev };
-                              if (!isChecked) {
-                                delete next[m.user_id];
-                              } else {
-                                if (!Object.prototype.hasOwnProperty.call(next, m.user_id)) {
-                                  next[m.user_id] = "";
-                                }
-                              }
-                              return next;
-                            });
-                          }}
-                        />
-                        <span className="font-medium text-gray-800">{m.name}</span>
-                        <span className="text-sm text-sky-700/60">plus-one</span>
-                      </label>
-
-                      {hasEntry && (
-                        <input
-                          className="w-full rounded-lg border-2 border-sky-400 px-4 py-2 focus:border-sky-600 focus:ring-2 focus:ring-sky-200 transition-all duration-200"
-                          value={value}
-                          disabled={mode === "view"}
-                          placeholder={`Guest name for ${m.name}`}
-                          onChange={(e) => {
-                            const newVal = e.target.value;
-                            setPlusOneByUser((prev) => ({ ...prev, [m.user_id]: newVal }));
-                          }}
-                        />
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-
-            <div>
-              <label className="block text-sm font-semibold text-sky-800 mb-2">
-                Dietary Restrictions / Allergies
-              </label>
-              {attendingMembers.length === 0 ? (
-                <p className="text-sm text-gray-500 italic">
-                  Select who's attending above to note any dietary needs for each guest.
-                </p>
-              ) : (
-                <div className="space-y-3">
-                  <p className="text-sm text-gray-500">
-                    List anything for each guest so we can flag it to the caterer.
+                <Card inner="px-8 py-10 text-center">
+                  <Flourish className="mb-6" />
+                  <h2 className="font-display text-3xl font-light text-ink">
+                    We already have your RSVP
+                  </h2>
+                  <p className="mt-3 text-sm leading-relaxed text-ink-soft">
+                    The <strong className="font-medium text-ink">{data.group.family_name}</strong>{" "}
+                    family has already replied
+                    {data.rsvp.submitted_by && (
+                      <>
+                        , submitted by{" "}
+                        <strong className="font-medium text-ink">{data.rsvp.submitted_by}</strong>
+                      </>
+                    )}
+                    .
                   </p>
-                  {attendingMembers.map((m) => (
-                    <div key={m.user_id} className="space-y-1">
-                      <label className="block text-sm font-medium text-gray-700">
-                        {m.name}
-                      </label>
-                      <input
-                        className="w-full rounded-lg border-2 border-sky-400 px-4 py-2 focus:border-sky-600 focus:ring-2 focus:ring-sky-200 transition-all duration-200"
-                        value={dietByUser[m.user_id] ?? ""}
-                        onChange={(e) =>
-                          setDietByUser((prev) => ({ ...prev, [m.user_id]: e.target.value }))
-                        }
-                        placeholder={`Allergies or dietary needs for ${m.name} (optional)`}
-                        disabled={mode === "view"}
-                      />
-                    </div>
+
+                  <div className="mt-7 flex gap-3">
+                    <Button
+                      variant="secondary"
+                      className="flex-1"
+                      onClick={() => {
+                        setMode("view");
+                        setShowExisting(false);
+                      }}
+                    >
+                      View
+                    </Button>
+                    <Button
+                      className="flex-1"
+                      onClick={() => {
+                        setMode("modify");
+                        setShowExisting(false);
+                      }}
+                    >
+                      Modify
+                    </Button>
+                  </div>
+                  <p className="mt-4 text-xs text-ink-soft">
+                    You can make changes anytime before the deadline.
+                  </p>
+                </Card>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Confirmation */}
+        <AnimatePresence>
+          {done && data && (
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.6, ease: EASE }}
+              className="mb-6"
+            >
+              <Card tone="dusk" inner="px-8 py-10 text-center">
+                <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-ink text-white">
+                  <Check size={22} weight="light" />
+                </span>
+                <h2 className="mt-5 font-display text-3xl font-light text-ink">
+                  {anyoneComing ? "See you there" : "We'll miss you"}
+                </h2>
+                <p className="mt-2 text-sm text-ink-soft">
+                  Your RSVP has been {done}. You can come back and change it anytime before the
+                  deadline.
+                </p>
+              </Card>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {data && (
+          <section className="space-y-6">
+            {/* Who's coming */}
+            <Reveal>
+              <Card inner="px-6 py-8 sm:px-8">
+                <div className="mb-1 flex items-start justify-between gap-4">
+                  <h2 className="font-display text-3xl font-light text-ink">
+                    {data.group.family_name} Family
+                  </h2>
+                  <button
+                    type="button"
+                    onClick={switchFamily}
+                    className="mt-2 shrink-0 cursor-pointer text-sm text-ink-soft underline decoration-ink/30 underline-offset-4 transition-colors hover:text-ink"
+                  >
+                    Not you?
+                  </button>
+                </div>
+                <p className="mb-5 text-sm text-ink-soft">Who will be joining us?</p>
+
+                <div className="space-y-2.5">
+                  {data.members.map((m) => (
+                    <MemberRow
+                      key={m.user_id}
+                      name={m.name}
+                      checked={attendingIds.includes(m.user_id)}
+                      disabled={readOnly}
+                      onChange={() => toggleMember(m.user_id)}
+                    />
                   ))}
                 </div>
-              )}
-            </div>
+              </Card>
+            </Reveal>
 
-            <div>
-              <label className="block text-sm font-semibold text-sky-800 mb-2">
-                Dress Code Notes (optional)
-              </label>
-              <input
-                className="w-full rounded-lg border-2 border-sky-400 px-4 py-3 focus:border-sky-600 focus:ring-2 focus:ring-sky-200 transition-all duration-200"
-                value={dress}
-                onChange={(e) => setDress(e.target.value)}
-                placeholder="Any questions about attire?"
-                disabled={mode === "view"}
-              />
-            </div>
+            {/* Details */}
+            <Reveal delay={0.05}>
+              <Card inner="space-y-7 px-6 py-8 sm:px-8">
+                {eligiblePlusOneUsers.length > 0 && (
+                  <div className="space-y-4 rounded-2xl bg-paper-deep p-5">
+                    <div>
+                      <h3 className="font-display text-2xl text-ink">Plus-ones</h3>
+                      <p className="mt-1 text-sm text-ink-soft">
+                        If someone is bringing a guest, enter their guest&apos;s name.
+                      </p>
+                    </div>
 
-            <div>
-              <label className="block text-sm font-semibold text-sky-800 mb-2">
-                Song Request
-              </label>
-              <div className="flex gap-2">
-                <input
-                  className="flex-1 rounded-lg border-2 border-sky-400 px-4 py-3 focus:border-sky-600 focus:ring-2 focus:ring-sky-200 transition-all duration-200"
-                  value={songTitle}
-                  onChange={(e) => setSongTitle(e.target.value)}
-                  placeholder="Song title"
-                  disabled={mode === "view"}
-                />
-                <input
-                  className="flex-1 rounded-lg border-2 border-sky-400 px-4 py-3 focus:border-sky-600 focus:ring-2 focus:ring-sky-200 transition-all duration-200"
-                  value={songArtist}
-                  onChange={(e) => setSongArtist(e.target.value)}
-                  placeholder="Artist (optional)"
-                  disabled={mode === "view"}
-                />
-              </div>
-            </div>
+                    {eligiblePlusOneUsers.map((m) => {
+                      const hasEntry = Object.prototype.hasOwnProperty.call(plusOneByUser, m.user_id);
+                      const value = hasEntry ? (plusOneByUser[m.user_id] ?? "") : "";
 
-            {error && (
-              <div className="bg-red-50 border-l-4 border-red-400 p-4 rounded">
-                <p className="text-red-700 font-medium">{error}</p>
-              </div>
-            )}
+                      return (
+                        <div key={m.user_id} className="space-y-2">
+                          <label className="flex cursor-pointer items-center gap-3">
+                            <input
+                              type="checkbox"
+                              className="h-5 w-5 cursor-pointer rounded"
+                              checked={hasEntry}
+                              disabled={readOnly}
+                              onChange={(e) => {
+                                const isChecked = e.target.checked;
+                                setPlusOneByUser((prev) => {
+                                  const next = { ...prev };
+                                  if (!isChecked) {
+                                    delete next[m.user_id];
+                                  } else if (!Object.prototype.hasOwnProperty.call(next, m.user_id)) {
+                                    next[m.user_id] = "";
+                                  }
+                                  return next;
+                                });
+                              }}
+                            />
+                            <span className="text-base text-ink">{m.name}</span>
+                            <span className="text-sm text-ink-soft">is bringing a guest</span>
+                          </label>
 
-            {mode !== "view" && (
-              <button
-                className="w-full cursor-pointer rounded-lg bg-sky-800 px-6 py-4 text-lg font-bold text-white hover:bg-sky-900 hover:scale-[1.02] transition-all duration-200 shadow-lg hover:shadow-xl"
-                onClick={submit}
-              >
-                {mode === "modify" ? "Update RSVP" : "Submit RSVP"}
-              </button>
-            )}
+                          <AnimatePresence>
+                            {hasEntry && (
+                              <motion.input
+                                initial={{ opacity: 0, y: -4 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -4 }}
+                                transition={{ duration: 0.3, ease: EASE }}
+                                className={inputClass}
+                                value={value}
+                                disabled={readOnly}
+                                placeholder={`Guest name for ${m.name}`}
+                                onChange={(e) => {
+                                  const newVal = e.target.value;
+                                  setPlusOneByUser((prev) => ({ ...prev, [m.user_id]: newVal }));
+                                }}
+                              />
+                            )}
+                          </AnimatePresence>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
 
-            {mode === "view" && (
-              <p className="text-sm text-zinc-500">
-                Viewing mode (editing disabled). Choose "Modify" to update.
-              </p>
-            )}
-          </div>
-        </section>
-      )}
+                <div>
+                  <h3 className="font-display text-2xl text-ink">Dietary restrictions</h3>
+                  {attendingMembers.length === 0 ? (
+                    <p className="mt-1 text-sm italic text-ink-soft">
+                      Select who&apos;s attending above to note any dietary needs for each guest.
+                    </p>
+                  ) : (
+                    <div className="mt-1 space-y-4">
+                      <p className="text-sm text-ink-soft">
+                        List anything for each guest so we can flag it to the caterer.
+                      </p>
+                      {attendingMembers.map((m) => (
+                        <Field key={m.user_id} label={m.name}>
+                          <input
+                            className={inputClass}
+                            value={dietByUser[m.user_id] ?? ""}
+                            onChange={(e) =>
+                              setDietByUser((prev) => ({ ...prev, [m.user_id]: e.target.value }))
+                            }
+                            placeholder="Allergies or dietary needs (optional)"
+                            disabled={readOnly}
+                          />
+                        </Field>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <Field label="Dress code questions (optional)">
+                  <input
+                    className={inputClass}
+                    value={dress}
+                    onChange={(e) => setDress(e.target.value)}
+                    placeholder="Any questions about attire?"
+                    disabled={readOnly}
+                  />
+                </Field>
+
+                <Field label="Song request" hint="One song you'd love to hear on the dance floor.">
+                  <div className="flex flex-col gap-2 sm:flex-row">
+                    <input
+                      className={inputClass}
+                      value={songTitle}
+                      onChange={(e) => setSongTitle(e.target.value)}
+                      placeholder="Song title"
+                      disabled={readOnly}
+                    />
+                    <input
+                      className={inputClass}
+                      value={songArtist}
+                      onChange={(e) => setSongArtist(e.target.value)}
+                      placeholder="Artist (optional)"
+                      disabled={readOnly}
+                    />
+                  </div>
+                </Field>
+
+                {error && <Notice tone="error">{error}</Notice>}
+
+                {!readOnly && (
+                  <Button size="lg" arrow className="w-full" onClick={submit} disabled={submitting}>
+                    {submitting ? "Sending..." : mode === "modify" ? "Update RSVP" : "Send RSVP"}
+                  </Button>
+                )}
+
+                {readOnly && (
+                  <div className="flex flex-col items-center gap-3 text-center">
+                    <p className="text-sm text-ink-soft">You&apos;re viewing your reply.</p>
+                    <Button variant="secondary" onClick={() => setMode("modify")}>
+                      Make a change
+                    </Button>
+                  </div>
+                )}
+              </Card>
+            </Reveal>
+          </section>
+        )}
       </div>
     </main>
   );

@@ -1,101 +1,143 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
+import { EASE } from "@/components/ui";
+
+const NAV_LINKS = [
+  { href: "/", label: "Home" },
+  { href: "/rsvp", label: "RSVP" },
+  { href: "/menu", label: "Menu" },
+  { href: "/registry", label: "Registry" },
+  { href: "/photos", label: "Photos" },
+  { href: "/things-to-do", label: "Things To Do" },
+  { href: "/accommodations", label: "Lodging" },
+  { href: "/playlist", label: "Playlist" },
+];
 
 export default function Navigation() {
   const pathname = usePathname();
-  const [menuOpen, setMenuOpen] = useState(false);
+  const reduce = useReducedMotion();
+  const [open, setOpen] = useState(false);
 
-  const navLinks = [
-    { href: "/", label: "Home" },
-    { href: "/rsvp", label: "RSVP" },
-    { href: "/menu", label: "Menu" },
-    { href: "/registry", label: "Registry" },
-    { href: "/photos", label: "Photos" },
-    { href: "/things-to-do", label: "Things To Do" },
-    { href: "/accommodations", label: "Lodging" },
-    { href: "/playlist", label: "Playlist" },
-  ];
+  // Admin and the access gate carry their own chrome.
+  const hidden = pathname.startsWith("/admin") || pathname === "/access";
+
+  useEffect(() => setOpen(false), [pathname]);
+
+  useEffect(() => {
+    document.body.style.overflow = open ? "hidden" : "";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [open]);
+
+  if (hidden) return null;
 
   return (
-    <nav className={`sticky top-0 z-50 pt-8 pb-4 ${pathname === "/" ? "bg-amber-200" : "bg-sky-200"}`}>
-      <div className="max-w-6xl mx-auto px-4 text-center relative">
-        {/* Hamburger toggle - mobile only */}
-        <button
-          onClick={() => setMenuOpen(!menuOpen)}
-          className="md:hidden absolute right-4 top-0 text-sky-900 z-50"
-          aria-label={menuOpen ? "Close menu" : "Open menu"}
+    <header className="sticky top-0 z-40 px-3 pt-3 sm:px-4 sm:pt-4">
+      <nav
+        className="mx-auto flex h-16 max-w-5xl items-center justify-between rounded-full bg-white/80 pl-6 pr-3 ring-1 ring-ink/10 shadow-lift backdrop-blur-xl"
+        aria-label="Main"
+      >
+        <Link
+          href="/"
+          className="font-display text-2xl italic leading-none text-ink no-underline"
+          aria-label="Tori and Connor, home"
         >
-          {menuOpen ? (
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-7 h-7">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          ) : (
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-7 h-7">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5M3.75 17.25h16.5" />
-            </svg>
-          )}
-        </button>
-
-        {/* Couple Names */}
-        <p className="font-[family-name:var(--font-cormorant)] text-sm tracking-[0.2em] uppercase text-sky-800 mb-1">The Wedding of</p>
-        <Link href="/admin/login" className="font-[family-name:var(--font-cormorant)] text-3xl md:text-4xl font-light tracking-[0.3em] uppercase text-sky-900 mb-2 block no-underline hover:no-underline">
-          Tori Campbell & Connor Quinn
+          T <span className="not-italic text-ink-soft">&amp;</span> C
         </Link>
 
-        {/* Date & Location */}
-        <p className="text-xs md:text-sm tracking-[0.2em] uppercase text-sky-800 mb-6">
-          May 22, 2027 &nbsp;&middot;&nbsp; Dover, OH
-        </p>
-
-        {/* Desktop Navigation Links */}
-        <div className="hidden md:flex justify-center items-center md:space-x-14">
-          {navLinks.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              className={`text-xs md:text-sm tracking-[0.15em] uppercase transition-colors cursor-pointer pb-1 ${
-                pathname === link.href
-                  ? "text-sky-900 relative after:absolute after:bottom-0 after:left-0 after:w-full after:h-px after:bg-sky-900"
-                  : "text-sky-900/60 hover:text-sky-900 relative after:absolute after:bottom-0 after:left-0 after:w-0 after:h-px after:bg-sky-900 hover:after:w-full after:transition-all after:duration-300"
-              }`}
-            >
-              {link.label}
-            </Link>
-          ))}
-        </div>
-
-        {/* Mobile Menu */}
-        <AnimatePresence>
-          {menuOpen && (
-            <motion.div
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.25, ease: "easeInOut" }}
-              className="md:hidden flex flex-col items-center gap-6 pt-2 pb-4"
-            >
-              {navLinks.map((link) => (
+        <ul className="hidden items-center gap-1 lg:flex">
+          {/* RSVP has its own pill on desktop. */}
+          {NAV_LINKS.filter((link) => link.href !== "/rsvp").map((link) => {
+            const active = pathname === link.href;
+            return (
+              <li key={link.href} className="relative">
                 <Link
-                  key={link.href}
                   href={link.href}
-                  onClick={() => setMenuOpen(false)}
-                  className={`text-sm tracking-[0.15em] uppercase transition-colors ${
-                    pathname === link.href
-                      ? "text-sky-900 border-b border-sky-900 pb-1"
-                      : "text-sky-900/60 hover:text-sky-900"
+                  className={`block rounded-full px-3.5 py-2 text-[13px] tracking-wide transition-colors duration-500 ease-[var(--ease-soft)] ${
+                    active ? "text-ink" : "text-ink-soft hover:text-ink"
                   }`}
                 >
                   {link.label}
                 </Link>
+                {active && (
+                  <motion.span
+                    layoutId="nav-underline"
+                    className="absolute inset-x-3.5 -bottom-0.5 h-px bg-ink"
+                    transition={{ duration: 0.5, ease: EASE }}
+                  />
+                )}
+              </li>
+            );
+          })}
+        </ul>
+
+        <Link
+          href="/rsvp"
+          className="hidden rounded-full bg-ink px-5 py-2.5 text-[13px] font-medium tracking-wide text-white transition-all duration-500 ease-[var(--ease-soft)] hover:bg-ink/90 active:scale-[0.98] lg:block"
+        >
+          RSVP
+        </Link>
+
+        {/* Two lines that fold into an X. */}
+        <button
+          type="button"
+          onClick={() => setOpen((v) => !v)}
+          className="relative flex h-10 w-10 cursor-pointer items-center justify-center rounded-full text-ink lg:hidden"
+          aria-expanded={open}
+          aria-controls="mobile-menu"
+          aria-label={open ? "Close menu" : "Open menu"}
+        >
+          <span
+            className={`absolute h-px w-5 bg-current transition-transform duration-500 ease-[var(--ease-soft)] ${
+              open ? "rotate-45" : "-translate-y-[3px]"
+            }`}
+          />
+          <span
+            className={`absolute h-px w-5 bg-current transition-transform duration-500 ease-[var(--ease-soft)] ${
+              open ? "-rotate-45" : "translate-y-[3px]"
+            }`}
+          />
+        </button>
+      </nav>
+
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            id="mobile-menu"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.4, ease: EASE }}
+            className="fixed inset-0 -z-10 flex flex-col items-center justify-center bg-paper/95 backdrop-blur-2xl lg:hidden"
+          >
+            <ul className="flex flex-col items-center gap-5">
+              {NAV_LINKS.map((link, i) => (
+                <motion.li
+                  key={link.href}
+                  initial={reduce ? false : { opacity: 0, y: 24 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 12 }}
+                  transition={{ duration: 0.6, delay: 0.05 + i * 0.05, ease: EASE }}
+                >
+                  <Link
+                    href={link.href}
+                    className={`font-display text-4xl font-light ${
+                      pathname === link.href ? "italic text-ink" : "text-ink-soft"
+                    }`}
+                  >
+                    {link.label}
+                  </Link>
+                </motion.li>
               ))}
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
-    </nav>
+            </ul>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </header>
   );
 }

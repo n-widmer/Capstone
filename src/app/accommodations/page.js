@@ -1,16 +1,20 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Check } from "@phosphor-icons/react";
 import FamilyFinder from "@/components/FamilyFinder";
+import { Button, Card, Flourish, Notice, PageHeader, Reveal, Skeleton, EASE } from "@/components/ui";
 
 export default function AccommodationsPage() {
   const [embeds, setEmbeds] = useState([]);
+  const [loadingEmbeds, setLoadingEmbeds] = useState(true);
 
   const [reservingEmbed, setReservingEmbed] = useState(null); // { id, embed_id } of the listing being reserved
-  const [identityGroup, setIdentityGroup] = useState(null);   // remembered family for the session
+  const [identityGroup, setIdentityGroup] = useState(null); // remembered family for the session
   const [codeError, setCodeError] = useState(null);
   const [loadingGroup, setLoadingGroup] = useState(false);
-  const [group, setGroup] = useState(null);          // { group, members } chosen for this reservation
+  const [group, setGroup] = useState(null); // { group, members } chosen for this reservation
   const [selectedIds, setSelectedIds] = useState([]); // user_ids of selected guests
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState(null);
@@ -37,7 +41,9 @@ export default function AccommodationsPage() {
           );
           setReservedEmbedIds(alreadyReserved);
         }
-      });
+      })
+      .catch(() => {})
+      .finally(() => setLoadingEmbeds(false));
   }, []);
 
   // Reuse the family the guest already identified as this session.
@@ -60,7 +66,6 @@ export default function AccommodationsPage() {
     }
   }, [embeds]);
 
-
   // open the modal for a specific listing
   function openReserve(embed) {
     setReservingEmbed(embed);
@@ -75,7 +80,7 @@ export default function AccommodationsPage() {
     }
   }
 
-  // Called only by Cancel — never modifies reservedEmbedIds
+  // Called only by Cancel; never modifies reservedEmbedIds
   function cancelModal() {
     setReservingEmbed(null);
   }
@@ -120,9 +125,7 @@ export default function AccommodationsPage() {
   }
 
   function toggleMember(uid) {
-    setSelectedIds((prev) =>
-      prev.includes(uid) ? prev.filter((x) => x !== uid) : [...prev, uid]
-    );
+    setSelectedIds((prev) => (prev.includes(uid) ? prev.filter((x) => x !== uid) : [...prev, uid]));
   }
 
   // submit the reservation
@@ -157,218 +160,204 @@ export default function AccommodationsPage() {
   }
 
   return (
-    <main className="min-h-screen py-12">
+    <main className="min-h-screen px-4 pb-16">
+      <PageHeader title="Lodging" subtitle="Places to stay near the venue" />
 
-      <div className="max-w-5xl mx-auto px-4">
+      <div className="mx-auto max-w-5xl">
+        {/* Shuttle notice */}
+        <Reveal className="mx-auto max-w-3xl">
+          <Card tone="butter" inner="px-8 py-9 text-center md:px-12">
+            <h2 className="font-display text-3xl font-light text-ink">Shuttle service</h2>
+            <p className="mx-auto mt-3 max-w-2xl text-sm leading-relaxed text-ink">
+              We will be providing a complimentary shuttle service to and from the hotel on the
+              day of the wedding. If you choose not to use the shuttle, please plan accordingly
+              and arrange for safe transportation. Please note there{" "}
+              <strong className="font-medium">will</strong> be a sheriff monitoring for drunk
+              driving.
+            </p>
+          </Card>
+        </Reveal>
 
-        {/* Page Header */}
-        <div className="text-center mb-12">
-          <h1 className="font-[family-name:var(--font-cormorant)] text-5xl md:text-6xl font-light tracking-wide text-sky-900 mb-3">
-            Lodging
-          </h1>
-          <div className="w-32 h-px bg-sky-600 mx-auto mb-4"></div>
-          <p className="text-lg text-sky-800/70 italic">
-            Places to Stay Near the Venue
+        {/* Airbnb intro */}
+        <Reveal className="mx-auto mt-24 max-w-2xl text-center">
+          <h2 className="font-display text-4xl font-light text-ink md:text-5xl">Airbnb rentals</h2>
+          <p className="mt-4 text-base leading-relaxed text-ink-soft">
+            We have handpicked a few nearby Airbnb rentals for your convenience. These are great
+            options for families or groups looking to stay close to the venue. Reserve one here
+            so we know where everyone is, then book it on Airbnb.
           </p>
-        </div>
+        </Reveal>
 
-        {/* Shuttle Notice */}
-        <div className="bg-amber-50 border border-amber-200 rounded-xl px-8 py-6 mb-12 text-center">
-          <h2 className="font-[family-name:var(--font-cormorant)] text-2xl text-sky-900 mb-2">
-            Shuttle Service Available
-          </h2>
-          <p className="text-sky-800/70 text-sm leading-relaxed max-w-2xl mx-auto">
-            We will be providing a complimentary shuttle service to and from the hotel on the day of the wedding.
-            If you choose not to use the shuttle, please plan accordingly and arrange for safe transportation.
-            Please note there <strong>will</strong> be a sheriff monitoring for drunk driving.
-          </p>
-        </div>
+        {/* Listings */}
+        <div className="mt-12 flex flex-wrap items-start justify-center gap-8">
+          {loadingEmbeds &&
+            [0, 1].map((i) => <Skeleton key={i} className="h-[520px] w-full max-w-[450px]" />)}
 
-        {/* Airbnb Section Header */}
-        <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-md border border-sky-100 p-8 text-center mb-10">
-          <h2 className="font-[family-name:var(--font-cormorant)] text-3xl text-sky-900 mb-3">
-            Airbnb Rentals
-          </h2>
-          <div className="w-16 h-px bg-sky-600 mx-auto mb-4"></div>
-          <p className="text-sky-800/70 text-sm leading-relaxed max-w-2xl mx-auto">
-            We have handpicked a few nearby Airbnb rentals for your convenience.
-            These are great options for families or groups looking to stay close to the venue.
-          </p>
-        </div>
+          {!loadingEmbeds && embeds.length === 0 && (
+            <p className="py-10 font-display text-2xl italic text-ink-soft">
+              Listings coming soon.
+            </p>
+          )}
 
-        {/* Airbnb Listings */}
-        {embeds.length > 0 && (
-          <div className="flex flex-wrap justify-center items-start gap-8 mb-16">
-            {embeds.map((embed) => (
-              <div
-                key={embed.id}
-                className="bg-white rounded-2xl shadow-lg border border-sky-100 flex flex-col"
-                style={{ width: "min(450px, 100vw - 2rem)" }}
-              >
-                {/* Embed — fixed native size, clipped to card width on narrow screens */}
-                <div
-                  className="overflow-hidden rounded-t-2xl"
-                  style={{ height: "450px" }}
-                >
-                  <div
-                    className="airbnb-embed-frame"
-                    data-id={embed.embed_id}
-                    data-view="home"
-                    data-hide-price="true"
-                    style={{ width: "450px", height: "450px" }}
-                  >
-                    <a href={`https://www.airbnb.com/rooms/${embed.embed_id}`}>
-                      View On Airbnb
-                    </a>
+          {embeds.map((embed, i) => {
+            const reserved = reservedEmbedIds.has(embed.id);
+            return (
+              <Reveal key={embed.id} delay={i * 0.05} className="w-full max-w-[450px]">
+                <Card inner="overflow-hidden">
+                  {/* Embed: fixed native size, clipped to card width on narrow screens */}
+                  <div className="overflow-hidden rounded-t-[calc(1.75rem-0.375rem)]" style={{ height: 450 }}>
+                    <div
+                      className="airbnb-embed-frame"
+                      data-id={embed.embed_id}
+                      data-view="home"
+                      data-hide-price="true"
+                      style={{ width: 450, height: 450 }}
+                    >
+                      <a href={`https://www.airbnb.com/rooms/${embed.embed_id}`}>View On Airbnb</a>
+                    </div>
                   </div>
-                </div>
 
-                {/* Reserve button inside the card */}
-                <div className="p-4">
-                  <button
-                    onClick={() => !reservedEmbedIds.has(embed.id) && openReserve(embed)}
-                    disabled={reservedEmbedIds.has(embed.id)}
-                    className={`w-full rounded-lg px-8 py-3 text-sm font-semibold transition-all duration-200 shadow-md ${
-                      reservedEmbedIds.has(embed.id)
-                        ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-                        : "cursor-pointer bg-sky-800 text-white hover:bg-sky-900 hover:scale-[1.02]"
-                    }`}
-                  >
-                    {reservedEmbedIds.has(embed.id) ? "Reserved" : "Reserve This Listing"}
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-
-
+                  <div className="p-4">
+                    <Button
+                      className="w-full"
+                      variant={reserved ? "secondary" : "primary"}
+                      disabled={reserved}
+                      onClick={() => !reserved && openReserve(embed)}
+                    >
+                      {reserved ? "Reserved" : "Reserve this listing"}
+                    </Button>
+                  </div>
+                </Card>
+              </Reveal>
+            );
+          })}
+        </div>
       </div>
 
-      {/* ——— Reservation Modal ——— */}
-      {reservingEmbed && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-2xl shadow-2xl border-4 border-double border-sky-400 w-full max-w-md relative overflow-y-auto max-h-[90vh]">
-
-            {/* Decorative corners */}
-            <div className="absolute top-0 left-0 w-16 h-16 border-t-4 border-l-4 border-sky-300 opacity-50 pointer-events-none"></div>
-            <div className="absolute bottom-0 right-0 w-16 h-16 border-b-4 border-r-4 border-sky-300 opacity-50 pointer-events-none"></div>
-
-            <div className="p-8">
-
-              {/* Success state */}
-              {submitSuccess ? (
-                <div className="text-center py-4">
-                  <div className="text-5xl mb-4">🏡</div>
-                  <h2 className="font-[family-name:var(--font-cormorant)] text-3xl text-sky-900 mb-2">
-                    Reservation Saved!
-                  </h2>
-                  <p className="text-sky-800/70 text-sm mb-6">
-                    We&apos;ve noted that the <strong>{group?.group?.family_name}</strong> family will be staying at this listing.
-                  </p>
-                  <button
-                    onClick={completeReservation}
-                    className="cursor-pointer rounded-lg bg-sky-800 px-8 py-3 text-sm font-bold text-white hover:bg-sky-900 transition-colors"
-                  >
-                    Done
-                  </button>
-                </div>
-
-              ) : !group ? (
-                /* Step 1: Identify the family */
-                <>
-                  <div className="text-center mb-6">
-                    <h2 className="font-[family-name:var(--font-cormorant)] text-3xl text-sky-900 mb-1">
-                      Reserve This Listing
+      {/* Reservation modal */}
+      <AnimatePresence>
+        {reservingEmbed && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-ink/40 p-4 backdrop-blur-sm"
+          >
+            <motion.div
+              initial={{ opacity: 0, y: 16, scale: 0.98 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 8, scale: 0.98 }}
+              transition={{ duration: 0.5, ease: EASE }}
+              className="w-full max-w-md"
+            >
+              <Card inner="max-h-[90vh] overflow-y-auto px-7 py-9 sm:px-9">
+                {submitSuccess ? (
+                  <div className="py-2 text-center">
+                    <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-ink text-white">
+                      <Check size={22} weight="light" />
+                    </span>
+                    <h2 className="mt-5 font-display text-3xl font-light text-ink">
+                      Reservation saved
                     </h2>
-                    <p className="text-gray-500 text-sm">Find your name to get started</p>
+                    <p className="mt-2 text-sm text-ink-soft">
+                      We&apos;ve noted that the{" "}
+                      <strong className="font-medium text-ink">{group?.group?.family_name}</strong>{" "}
+                      family will be staying at this listing.
+                    </p>
+                    <Button className="mt-7" onClick={completeReservation}>
+                      Done
+                    </Button>
                   </div>
-
-                  <div className="space-y-4">
-                    {loadingGroup ? (
-                      <p className="text-center text-gray-500 py-4">Checking your reservation…</p>
-                    ) : (
-                      <FamilyFinder onSelected={handleSelected} />
-                    )}
-
-                    {codeError && (
-                      <div className="bg-red-50 border-l-4 border-red-400 p-3 rounded">
-                        <p className="text-red-700 text-sm font-medium">{codeError}</p>
-                      </div>
-                    )}
-
-                    <button
-                      onClick={cancelModal}
-                      className="cursor-pointer w-full rounded-lg border border-gray-300 px-6 py-3 text-sm text-gray-600 hover:bg-gray-50 transition-colors"
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                </>
-
-              ) : (
-                /* Step 2: Select family members */
-                <>
-                  <div className="mb-6">
-                    <h2 className="font-[family-name:var(--font-cormorant)] text-3xl text-sky-900 mb-1">
-                      {group.group.family_name} Family
-                    </h2>
-                    <p className="text-gray-500 text-sm">Who will be staying at this listing?</p>
-                  </div>
-
-                  <div className="space-y-2 mb-6">
-                    {group.members.map((m) => (
-                      <label
-                        key={m.user_id}
-                        className="flex items-center gap-3 p-3 rounded-lg border border-gray-200 hover:bg-sky-50 cursor-pointer transition-colors"
-                      >
-                        <input
-                          type="checkbox"
-                          className="cursor-pointer w-5 h-5 text-sky-600 rounded focus:ring-sky-500"
-                          checked={selectedIds.includes(m.user_id)}
-                          onChange={() => toggleMember(m.user_id)}
-                        />
-                        <span className="text-gray-800">{m.name}</span>
-                      </label>
-                    ))}
-                  </div>
-
-                  {submitError && (
-                    <div className="bg-red-50 border-l-4 border-red-400 p-3 rounded mb-4">
-                      <p className="text-red-700 text-sm font-medium">{submitError}</p>
+                ) : !group ? (
+                  /* Step 1: Identify the family */
+                  <>
+                    <div className="mb-6 text-center">
+                      <Flourish className="mb-5" />
+                      <h2 className="font-display text-3xl font-light text-ink">
+                        Reserve this listing
+                      </h2>
+                      <p className="mt-1 text-sm text-ink-soft">Find your name to get started</p>
                     </div>
-                  )}
 
-                  <div className="flex gap-3">
-                    <button
-                      onClick={() => setGroup(null)}
-                      className="cursor-pointer flex-1 rounded-lg border border-gray-300 px-4 py-3 text-sm text-gray-600 hover:bg-gray-50 transition-colors"
-                    >
-                      Back
-                    </button>
-                    <button
-                      onClick={handleReserve}
-                      disabled={submitting || selectedIds.length === 0}
-                      className="cursor-pointer flex-1 rounded-lg bg-sky-800 px-4 py-3 text-sm font-bold text-white hover:bg-sky-900 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      {submitting ? "Saving..." : "Confirm Reservation"}
-                    </button>
-                  </div>
+                    <div className="space-y-4">
+                      {loadingGroup ? (
+                        <p className="py-4 text-center text-sm text-ink-soft">
+                          Checking your reservation...
+                        </p>
+                      ) : (
+                        <FamilyFinder onSelected={handleSelected} />
+                      )}
 
-                  <button
-                    onClick={cancelModal}
-                    className="cursor-pointer w-full mt-3 text-sm text-gray-400 hover:text-gray-600 transition-colors"
-                  >
-                    Cancel
-                  </button>
-                </>
-              )}
+                      {codeError && <Notice tone="error">{codeError}</Notice>}
 
-            </div>
-          </div>
-        </div>
-      )}
+                      <Button variant="ghost" className="w-full" onClick={cancelModal}>
+                        Cancel
+                      </Button>
+                    </div>
+                  </>
+                ) : (
+                  /* Step 2: Select family members */
+                  <>
+                    <div className="mb-6">
+                      <h2 className="font-display text-3xl font-light text-ink">
+                        {group.group.family_name} Family
+                      </h2>
+                      <p className="mt-1 text-sm text-ink-soft">
+                        Who will be staying at this listing?
+                      </p>
+                    </div>
 
+                    <div className="mb-6 space-y-2">
+                      {group.members.map((m) => {
+                        const checked = selectedIds.includes(m.user_id);
+                        return (
+                          <label
+                            key={m.user_id}
+                            className={`flex cursor-pointer items-center gap-3 rounded-2xl px-4 py-3 ring-1 transition-all duration-500 ease-[var(--ease-soft)] ${
+                              checked ? "bg-dusk-soft ring-dusk" : "bg-white ring-ink/10 hover:ring-ink/25"
+                            }`}
+                          >
+                            <input
+                              type="checkbox"
+                              className="h-5 w-5 cursor-pointer rounded"
+                              checked={checked}
+                              onChange={() => toggleMember(m.user_id)}
+                            />
+                            <span className="text-base text-ink">{m.name}</span>
+                          </label>
+                        );
+                      })}
+                    </div>
+
+                    {submitError && (
+                      <Notice tone="error" className="mb-4">
+                        {submitError}
+                      </Notice>
+                    )}
+
+                    <div className="flex gap-3">
+                      <Button variant="secondary" className="flex-1" onClick={() => setGroup(null)}>
+                        Back
+                      </Button>
+                      <Button
+                        className="flex-1"
+                        onClick={handleReserve}
+                        disabled={submitting || selectedIds.length === 0}
+                      >
+                        {submitting ? "Saving..." : "Confirm"}
+                      </Button>
+                    </div>
+
+                    <Button variant="ghost" className="mt-2 w-full" onClick={cancelModal}>
+                      Cancel
+                    </Button>
+                  </>
+                )}
+              </Card>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </main>
   );
 }

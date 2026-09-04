@@ -1,86 +1,130 @@
 import Image from "next/image";
-import Link from "next/link";
 import FallingTulips from "@/components/FallingTulips";
 import CountdownTimer from "@/components/CountdownTimer";
+import { Button, Card, Reveal, Flourish } from "@/components/ui";
+import { DATE_LABEL, SCHEDULE, VENUE, VENUE_ADDRESS, VENUE_MAPS_URL } from "@/lib/wedding";
 
 export default function Home() {
-  const venueAddress = "3931 State Route 39 NW Dover, OH 44622";
-  const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(venueAddress)}`;
-
   return (
-    <main className="relative flex min-h-screen flex-col items-center py-8 bg-amber-200">
+    <main className="relative bg-butter">
       <FallingTulips />
-      {/* Hero Image - Cropped Landscape View */}
-      <div className="relative w-full max-w-5xl h-[600px] md:h-[950px] overflow-hidden mb-12">
-        <Image
-          src="/hero-photo.jpg"
-          alt="Tori and Connor"
-          fill
-          className="object-cover object-[center_10%]"
-          style={{ filter: "grayscale(100%)" }}
-          priority
-        />
-      </div>
 
-      <CountdownTimer />
-
-      {/* Venue & Date Section */}
-      <div className="text-center px-4 mb-16 max-w-3xl mx-auto">
-        <div className="flex items-center justify-center gap-4 mb-6">
-          <div className="w-16 h-px bg-sky-800/40"></div>
-          <span className="font-[family-name:var(--font-cormorant)] text-sm tracking-[0.25em] uppercase text-sky-800">The Celebration</span>
-          <div className="w-16 h-px bg-sky-800/40"></div>
-        </div>
-
-        <a
-          href={googleMapsUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="font-[family-name:var(--font-cormorant)] text-3xl md:text-4xl text-sky-900 hover:text-sky-700 transition-colors cursor-pointer block mb-3"
-        >
-          Yellowbrick on 39
-        </a>
-
-        <p className="font-[family-name:var(--font-cormorant)] text-sm tracking-widest uppercase text-sky-700/80 mb-8">
-          {venueAddress}
-        </p>
-
-        <Link
-          href="/rsvp"
-          className="font-[family-name:var(--font-cormorant)] inline-block px-10 py-3 border border-sky-900 text-sky-900 text-sm tracking-[0.2em] uppercase hover:bg-sky-900 hover:text-white hover:scale-105 transition-all duration-200 cursor-pointer"
-        >
-          RSVP
-        </Link>
-      </div>
-
-      {/* Wedding Details */}
-      <div className="max-w-3xl mx-auto px-4 mb-16">
-        <div className="flex items-center justify-center gap-4 mb-10">
-          <div className="w-16 h-px bg-sky-800/40"></div>
-          <span className="font-[family-name:var(--font-cormorant)] text-sm tracking-[0.25em] uppercase text-sky-800">Details</span>
-          <div className="w-16 h-px bg-sky-800/40"></div>
-        </div>
-
-        <div className="space-y-10 text-center">
-          {/* Parking */}
-          <div>
-            <h2 className="font-[family-name:var(--font-cormorant)] text-2xl text-sky-900 mb-3">Parking</h2>
-            <p className="font-[family-name:var(--font-cormorant)] text-sky-800/70 leading-relaxed max-w-xl mx-auto">
-              Accessible parking is located near the cottage. Please save this for those who need to utilize it.
+      {/* Hero: names on the left, the two of them on the right */}
+      <section className="relative z-10 mx-auto grid max-w-7xl grid-cols-1 items-stretch gap-8 px-4 pb-8 pt-6 sm:px-6 lg:min-h-[calc(100dvh-5.5rem)] lg:grid-cols-12 lg:gap-12 lg:pb-16">
+        <div className="order-2 flex flex-col justify-center py-6 lg:order-1 lg:col-span-5 lg:py-0">
+          <Reveal>
+            <p className="text-xs uppercase tracking-[0.3em] text-ink-soft">
+              {DATE_LABEL} &middot; Dover, Ohio
             </p>
-          </div>
-
-          <div className="w-12 h-px bg-sky-800/20 mx-auto"></div>
-
-          {/* Important Notice */}
-          <div>
-            <h2 className="font-[family-name:var(--font-cormorant)] text-2xl text-sky-900 mb-3">Please Note</h2>
-            <p className="font-[family-name:var(--font-cormorant)] text-sky-800/70 leading-relaxed max-w-xl mx-auto">
-              <strong>There WILL be a sheriff monitoring for drunk driving. We will also be providing a shuttle service to and from the hotel. If you choose not to use this PLEASE plan accordingly and arrange for safe transportation!!</strong>
+          </Reveal>
+          <Reveal delay={0.1}>
+            <h1 className="mt-5 font-display text-6xl font-light italic leading-[0.95] text-ink sm:text-7xl lg:text-8xl">
+              Tori <span className="not-italic text-ink-soft">&amp;</span>
+              <br />
+              Connor
+            </h1>
+          </Reveal>
+          <Reveal delay={0.2}>
+            <p className="mt-7 max-w-md text-lg leading-relaxed text-ink-soft">
+              We&apos;re getting married, and we would love for you to be there.
             </p>
-          </div>
+          </Reveal>
+          <Reveal delay={0.3}>
+            <div className="mt-9 flex flex-wrap items-center gap-3">
+              <Button href="/rsvp" size="lg" arrow>
+                RSVP
+              </Button>
+              <Button href="#details" variant="secondary" size="lg">
+                The Details
+              </Button>
+            </div>
+          </Reveal>
         </div>
-      </div>
+
+        <Reveal scale className="order-1 lg:order-2 lg:col-span-7">
+          <div className="relative aspect-[4/5] w-full overflow-hidden rounded-[2rem] bg-white/40 ring-1 ring-ink/10 shadow-lift sm:aspect-[5/6] lg:aspect-auto lg:h-full lg:min-h-[640px]">
+            <Image
+              src="/hero-photo.jpg"
+              alt="Tori and Connor, kissing, her hand held out to show the ring"
+              fill
+              priority
+              sizes="(min-width: 1024px) 58vw, 100vw"
+              className="photo-mono object-cover object-[center_28%]"
+            />
+            <div
+              className="pointer-events-none absolute inset-0 bg-gradient-to-t from-ink/25 via-transparent to-transparent"
+              aria-hidden="true"
+            />
+          </div>
+        </Reveal>
+      </section>
+
+      {/* Countdown */}
+      <section className="relative z-10 px-4 py-20 md:py-28">
+        <Reveal>
+          <p className="mb-10 text-center font-display text-2xl italic text-ink-soft md:text-3xl">
+            Until we say I do
+          </p>
+        </Reveal>
+        <Reveal delay={0.1}>
+          <CountdownTimer />
+        </Reveal>
+      </section>
+
+      {/* Venue and the day */}
+      <section id="details" className="relative z-10 scroll-mt-24 bg-butter-soft px-4 py-20 md:py-28">
+        <div className="mx-auto grid max-w-6xl gap-14 lg:grid-cols-2 lg:gap-20">
+          <Reveal>
+            <h2 className="font-display text-4xl font-light leading-tight text-ink md:text-5xl">
+              {VENUE}
+            </h2>
+            <p className="mt-4 text-base leading-relaxed text-ink-soft">{VENUE_ADDRESS}</p>
+            <p className="mt-6 max-w-md text-base leading-relaxed text-ink-soft">
+              Accessible parking is located near the cottage. Please save this for those who
+              need to utilize it.
+            </p>
+            <div className="mt-8">
+              <Button href={VENUE_MAPS_URL} external variant="secondary" arrow="up">
+                Open in Maps
+              </Button>
+            </div>
+          </Reveal>
+
+          <Reveal delay={0.1}>
+            <h2 className="font-display text-4xl font-light leading-tight text-ink md:text-5xl">
+              The Day
+            </h2>
+            <ol className="mt-6">
+              {SCHEDULE.map((item, i) => (
+                <li
+                  key={item.label}
+                  className={`flex items-baseline justify-between gap-6 py-4 ${
+                    i > 0 ? "border-t border-ink/10" : ""
+                  }`}
+                >
+                  <span className="font-display text-2xl text-ink md:text-3xl">{item.label}</span>
+                  <span className="text-sm tracking-wide text-ink-soft">{item.time}</span>
+                </li>
+              ))}
+            </ol>
+          </Reveal>
+        </div>
+      </section>
+
+      {/* Getting home safely */}
+      <section className="relative z-10 px-4 py-20 md:py-28">
+        <Reveal className="mx-auto max-w-3xl">
+          <Card inner="px-8 py-10 text-center md:px-14 md:py-14">
+            <Flourish className="mb-6" />
+            <h2 className="font-display text-3xl font-light text-ink md:text-4xl">Please Note</h2>
+            <p className="mx-auto mt-5 max-w-xl text-base leading-relaxed text-ink">
+              There WILL be a sheriff monitoring for drunk driving. We will also be providing a
+              shuttle service to and from the hotel. If you choose not to use this PLEASE plan
+              accordingly and arrange for safe transportation!!
+            </p>
+          </Card>
+        </Reveal>
+      </section>
     </main>
   );
 }

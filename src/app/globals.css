@@ -1,1 +1,93 @@
 @import "tailwindcss";
+
+/*
+  The site's original palette: sky blue pages, an amber landing page, deep
+  sky-blue ink, white cards. Radius system: buttons are pills, cards 1.75rem,
+  inputs 0.75rem.
+*/
+@theme {
+  --color-paper: #bae6fd;
+  --color-paper-deep: #a5dcfa;
+  --color-linen: #7dd3fc;
+  --color-ink: #0c4a6e;
+  --color-ink-soft: #075985;
+  --color-dusk: #38bdf8;
+  --color-dusk-soft: #e0f2fe;
+  --color-butter: #fde68a;
+  --color-butter-soft: #fef3c7;
+  --color-leaf: #7e8f63;
+
+  --font-display: var(--font-cormorant), "Cormorant Garamond", Georgia, serif;
+  --font-body: var(--font-jost), "Jost", "Helvetica Neue", sans-serif;
+
+  --ease-soft: cubic-bezier(0.32, 0.72, 0, 1);
+  --ease-expo: cubic-bezier(0.16, 1, 0.3, 1);
+
+  --shadow-lift: 0 24px 60px -24px rgb(12 74 110 / 0.28);
+  --shadow-hairline: inset 0 1px 0 rgb(255 255 255 / 0.7);
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    background-color: var(--color-paper);
+    color: var(--color-ink);
+    font-family: var(--font-body);
+    font-weight: 300;
+    -webkit-font-smoothing: antialiased;
+  }
+  ::selection {
+    background: var(--color-butter);
+    color: var(--color-ink);
+  }
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+    font-weight: 400;
+  }
+  input,
+  textarea,
+  button {
+    font-family: var(--font-body);
+  }
+  input::placeholder {
+    color: color-mix(in srgb, var(--color-ink-soft) 70%, transparent);
+  }
+  input[type="checkbox"] {
+    accent-color: var(--color-ink);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+@layer utilities {
+  /* warm monochrome for the couple's photo, not a flat grayscale filter */
+  .photo-mono {
+    filter: grayscale(1) sepia(0.22) contrast(1.04) brightness(1.02);
+  }
+  .sway {
+    animation: sway 6s ease-in-out infinite alternate;
+  }
+}
+
+@keyframes sway {
+  from {
+    transform: rotate(-4deg) translateX(-4px);
+  }
+  to {
+    transform: rotate(4deg) translateX(4px);
+  }
+}

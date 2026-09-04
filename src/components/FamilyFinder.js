@@ -1,10 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Button, Field, Notice, inputClass, EASE } from "@/components/ui";
 
 // Lets a guest find their wedding group by searching their name, then remembers
 // the selection for the session (via /api/guest-group). Calls onSelected with
-// the chosen group's full payload. Renders the search UI only — the caller
+// the chosen group's full payload. Renders the search UI only; the caller
 // supplies any surrounding card/modal chrome.
 export default function FamilyFinder({ onSelected, autoFocus = false }) {
   const [q, setQ] = useState("");
@@ -13,7 +15,8 @@ export default function FamilyFinder({ onSelected, autoFocus = false }) {
   const [searching, setSearching] = useState(false);
   const [selectingId, setSelectingId] = useState(null);
 
-  async function search() {
+  async function search(e) {
+    e?.preventDefault();
     setError("");
     setMatches(null);
     const term = q.trim();
@@ -60,63 +63,78 @@ export default function FamilyFinder({ onSelected, autoFocus = false }) {
   }
 
   return (
-    <div className="space-y-4">
-      <div>
-        <label className="block text-sm font-semibold text-sky-800 mb-2">
-          Search for your name
-        </label>
-        <div className="flex gap-2">
-          <input
-            autoFocus={autoFocus}
-            className="flex-1 rounded-lg border-2 border-sky-400 px-4 py-3 text-lg focus:border-sky-600 focus:ring-2 focus:ring-sky-200 transition-all duration-200"
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && search()}
-            placeholder="Your first or last name"
-          />
-          <button
-            onClick={search}
-            disabled={searching || q.trim().length < 2}
-            className="cursor-pointer rounded-lg bg-sky-800 px-6 py-3 text-lg font-bold text-white hover:bg-sky-900 hover:scale-[1.02] transition-all duration-200 shadow-lg disabled:opacity-60 disabled:hover:scale-100"
-          >
-            {searching ? "Searching..." : "Search"}
-          </button>
-        </div>
-      </div>
-
-      {error && (
-        <div className="bg-red-50 border-l-4 border-red-400 p-4 rounded">
-          <p className="text-red-700 font-medium">{error}</p>
-        </div>
-      )}
-
-      {matches && matches.length === 0 && (
-        <p className="text-gray-500 text-sm italic">
-          No one found for &ldquo;{q.trim()}&rdquo;. Try your last name, or double-check the spelling.
-        </p>
-      )}
-
-      {matches && matches.length > 0 && (
-        <div className="space-y-2">
-          <p className="text-sm text-gray-600">
-            {matches.length === 1 ? "Is this you?" : "Select your group:"}
-          </p>
-          {matches.map((m) => (
-            <button
-              key={m.group_id}
-              onClick={() => choose(m.group_id)}
-              disabled={selectingId !== null}
-              className="w-full text-left cursor-pointer rounded-lg border-2 border-sky-200 p-4 hover:border-sky-500 hover:bg-sky-50 transition-all duration-200 disabled:opacity-60"
+    <div className="space-y-5">
+      <form onSubmit={search}>
+        <Field label="Your first or last name">
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <input
+              autoFocus={autoFocus}
+              className={inputClass}
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              placeholder="Start typing your name"
+              autoComplete="name"
+            />
+            <Button
+              type="submit"
+              disabled={searching || q.trim().length < 2}
+              className="shrink-0 sm:px-7"
             >
-              <p className="font-semibold text-sky-900">{m.family_name} Family</p>
-              <p className="text-sm text-gray-500">{m.members.join(", ")}</p>
-              {selectingId === m.group_id && (
-                <p className="text-xs text-sky-600 mt-1">Loading…</p>
-              )}
-            </button>
-          ))}
-        </div>
-      )}
+              {searching ? "Searching..." : "Find me"}
+            </Button>
+          </div>
+        </Field>
+      </form>
+
+      {error && <Notice tone="error">{error}</Notice>}
+
+      <AnimatePresence mode="wait">
+        {matches && matches.length === 0 && (
+          <motion.p
+            key="none"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="text-sm italic text-ink-soft"
+          >
+            No one found for &ldquo;{q.trim()}&rdquo;. Try your last name, or double-check the
+            spelling.
+          </motion.p>
+        )}
+
+        {matches && matches.length > 0 && (
+          <motion.div
+            key="list"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.5, ease: EASE }}
+            className="space-y-2"
+          >
+            <p className="text-sm text-ink-soft">
+              {matches.length === 1 ? "Is this you?" : "Select your group:"}
+            </p>
+            {matches.map((m, i) => (
+              <motion.button
+                key={m.group_id}
+                type="button"
+                onClick={() => choose(m.group_id)}
+                disabled={selectingId !== null}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: i * 0.05, ease: EASE }}
+                className="w-full cursor-pointer rounded-2xl bg-white px-5 py-4 text-left ring-1 ring-ink/10 transition-all duration-500 ease-[var(--ease-soft)] hover:bg-dusk-soft hover:ring-dusk active:scale-[0.99] disabled:opacity-60"
+              >
+                <p className="font-display text-2xl text-ink">{m.family_name} Family</p>
+                <p className="mt-0.5 text-sm text-ink-soft">{m.members.join(", ")}</p>
+                {selectingId === m.group_id && (
+                  <p className="mt-1 text-xs text-ink-soft">Loading...</p>
+                )}
+              </motion.button>
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

@@ -1,103 +1,72 @@
 "use client";
 
-import { useEffect, useRef, useCallback } from "react";
+import { useEffect, useState } from "react";
+import { motion, useScroll, useTransform, useReducedMotion } from "framer-motion";
 
 const TULIP_IMAGES = ["/tulips/WhiteTulip.png", "/tulips/YellowTulip.png", "/tulips/BlueTulip.png"];
 
-function generateTulips() {
-  const viewportHeight = window.innerHeight;
-  const pageHeight = document.documentElement.scrollHeight;
-  const maxScroll = Math.max(1, pageHeight - viewportHeight);
-
-  return Array.from({ length: 30 }, (_, i) => {
-    const appearAtScroll = i < 10 ? 0 : Math.random() * maxScroll * 0.5;
-    const speed = 1.5 + Math.random() * 2.0;
-
+function makeTulips(count, viewportHeight) {
+  return Array.from({ length: count }, (_, i) => {
+    const onScreenAtLoad = i < Math.ceil(count / 3);
     return {
       id: i,
       x: Math.random() * 92 + 2,
-      size: 30 + Math.random() * 50,
+      size: 34 + Math.random() * 56,
       rotation: -30 + Math.random() * 60,
-      speed,
-      rotationSpeed: (Math.random() - 0.5) * 0.15,
-      startY: i < 10 ? Math.random() * viewportHeight * 0.8 : -(50 + Math.random() * 150),
-      appearAtScroll,
-      image: TULIP_IMAGES[Math.floor(Math.random() * TULIP_IMAGES.length)],
-      opacity: 0.3 + Math.random() * 0.4,
+      speed: 0.6 + Math.random() * 1.2,
+      rotSpeed: (Math.random() - 0.5) * 0.08,
+      startY: onScreenAtLoad ? Math.random() * viewportHeight * 0.85 : -(60 + Math.random() * 200),
+      appearAt: onScreenAtLoad ? 0 : Math.random() * 1400,
+      image: TULIP_IMAGES[i % TULIP_IMAGES.length],
+      opacity: 0.35 + Math.random() * 0.35,
+      swayDelay: -(Math.random() * 6),
     };
   });
 }
 
-export default function FallingTulips() {
-  const containerRef = useRef(null);
-  const tulipsRef = useRef([]);
-  const rafId = useRef(null);
-
-  const updatePositions = useCallback(() => {
-    const container = containerRef.current;
-    const tulips = tulipsRef.current;
-    if (!container || !tulips.length) return;
-
-    const sy = window.scrollY;
-    const children = container.children;
-
-    for (let i = 0; i < children.length && i < tulips.length; i++) {
-      const t = tulips[i];
-      const effectiveScroll = Math.max(0, sy - t.appearAtScroll);
-      const y = t.startY + effectiveScroll * t.speed;
-      const rot = t.rotation + effectiveScroll * t.rotationSpeed;
-      const visible = sy >= t.appearAtScroll;
-      children[i].style.transform = `translateY(${y}px) rotate(${rot}deg)`;
-      children[i].style.opacity = visible ? t.opacity : 0;
-    }
-  }, []);
-
-  useEffect(() => {
-    const tulips = generateTulips();
-    tulipsRef.current = tulips;
-
-    const container = containerRef.current;
-    if (!container) return;
-
-    container.innerHTML = "";
-
-    tulips.forEach((t) => {
-      const div = document.createElement("div");
-      div.className = "absolute will-change-transform";
-      div.style.left = `${t.x}%`;
-      div.style.top = "0";
-      div.style.width = `${t.size}px`;
-      div.style.height = `${t.size * 2}px`;
-      div.style.opacity = t.appearAtScroll === 0 ? t.opacity : 0;
-      div.style.transform = `translateY(${t.startY}px) rotate(${t.rotation}deg)`;
-
-      div.innerHTML = `<img src="${t.image}" alt="" style="width:100%;height:100%;object-fit:contain;" />`;
-
-      container.appendChild(div);
-    });
-
-    function onScroll() {
-      if (rafId.current) return;
-      rafId.current = requestAnimationFrame(() => {
-        updatePositions();
-        rafId.current = null;
-      });
-    }
-
-    window.addEventListener("scroll", onScroll, { passive: true });
-    updatePositions();
-
-    return () => {
-      window.removeEventListener("scroll", onScroll);
-      if (rafId.current) cancelAnimationFrame(rafId.current);
-    };
-  }, [updatePositions]);
+function Tulip({ t, scrollY, still }) {
+  const y = useTransform(scrollY, (v) =>
+    still ? t.startY : t.startY + Math.max(0, v - t.appearAt) * t.speed
+  );
+  const rotate = useTransform(scrollY, (v) =>
+    still ? t.rotation : t.rotation + Math.max(0, v - t.appearAt) * t.rotSpeed
+  );
+  const opacity = useTransform(scrollY, (v) => (v >= t.appearAt ? t.opacity : 0));
 
   return (
-    <div
-      ref={containerRef}
-      className="fixed inset-0 pointer-events-none z-10 overflow-hidden"
-      aria-hidden="true"
-    />
+    <motion.div
+      className="absolute top-0 will-change-transform"
+      style={{ left: `${t.x}%`, width: t.size, height: t.size * 2, y, rotate, opacity }}
+    >
+      <img
+        src={t.image}
+        alt=""
+        className="sway h-full w-full object-contain"
+        style={{ animationDelay: `${t.swayDelay}s` }}
+        draggable={false}
+      />
+    </motion.div>
+  );
+}
+
+// Tulips drift down as the guest scrolls, driven by motion values so nothing
+// re-renders per frame. Randomness is generated on the client after mount so
+// server and client markup match.
+export default function FallingTulips({ count } = {}) {
+  const reduce = useReducedMotion();
+  const { scrollY } = useScroll();
+  const [tulips, setTulips] = useState([]);
+
+  useEffect(() => {
+    const n = count ?? (window.innerWidth < 768 ? 12 : 22);
+    setTulips(makeTulips(n, window.innerHeight));
+  }, [count]);
+
+  return (
+    <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden" aria-hidden="true">
+      {tulips.map((t) => (
+        <Tulip key={t.id} t={t} scrollY={scrollY} still={!!reduce} />
+      ))}
+    </div>
   );
 }

@@ -1,9 +1,28 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { X } from "@phosphor-icons/react";
 import FamilyFinder from "@/components/FamilyFinder";
+import {
+  Button,
+  Card,
+  Field,
+  Notice,
+  PageHeader,
+  Pill,
+  Reveal,
+  Skeleton,
+  inputClass,
+  EASE,
+} from "@/components/ui";
 
-const CATEGORIES = ["all", "engagement", "wedding", "guest"];
+const CATEGORIES = [
+  { key: "all", label: "All" },
+  { key: "engagement", label: "Engagement" },
+  { key: "wedding", label: "Wedding" },
+  { key: "guest", label: "From Guests" },
+];
 
 export default function PhotoGalleryPage() {
   const [photos, setPhotos] = useState([]);
@@ -35,7 +54,7 @@ export default function PhotoGalleryPage() {
       }
       setPhotos(json.photos);
       setError("");
-    } catch (e) {
+    } catch {
       setError("Failed to load photos");
     } finally {
       setLoading(false);
@@ -62,6 +81,14 @@ export default function PhotoGalleryPage() {
       active = false;
     };
   }, []);
+
+  // Close the lightbox on Escape.
+  useEffect(() => {
+    if (!lightbox) return;
+    const onKey = (e) => e.key === "Escape" && setLightbox(null);
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [lightbox]);
 
   function handleSelected(payload) {
     setGroupId(payload.group.group_id);
@@ -111,216 +138,198 @@ export default function PhotoGalleryPage() {
       if (fileInput) fileInput.value = "";
       await fetchPhotos(category);
     } catch {
-      setUploadMsg("Upload failed — please try again");
+      setUploadMsg("Upload failed. Please try again.");
     } finally {
       setUploading(false);
     }
   }
 
+  const uploadOk = uploadMsg.includes("uploaded");
+
   return (
-    <main className="min-h-screen py-12 px-4">
+    <main className="min-h-screen px-4 pb-16">
+      <PageHeader title="Photos" subtitle="Moments captured, memories cherished" />
+
       <div className="mx-auto max-w-6xl">
-        {/* Header */}
-        <div className="text-center mb-10">
-          <h1 className="font-[family-name:var(--font-cormorant)] text-5xl md:text-6xl text-sky-900 mb-4">
-            Photo Gallery
-          </h1>
-          <div className="w-24 h-1 bg-sky-600 mx-auto mb-4"></div>
-          <p className="text-xl text-gray-600 font-[family-name:var(--font-cormorant)] italic">
-            Moments captured, memories cherished
-          </p>
-        </div>
-
-        {/* Category Filters + Upload Toggle */}
-        <div className="flex flex-wrap items-center justify-center gap-3 mb-8">
+        {/* Filters + upload toggle */}
+        <Reveal className="mb-10 flex flex-wrap items-center justify-center gap-2.5">
           {CATEGORIES.map((cat) => (
-            <button
-              key={cat}
-              onClick={() => setCategory(cat)}
-              className={`cursor-pointer rounded-full px-5 py-2 text-sm font-semibold tracking-wide uppercase transition-all duration-200 ${
-                category === cat
-                  ? "bg-sky-800 text-white shadow-md"
-                  : "bg-white text-sky-800 border-2 border-sky-300 hover:border-sky-600 hover:bg-sky-50"
-              }`}
-            >
-              {cat}
-            </button>
+            <Pill key={cat.key} active={category === cat.key} onClick={() => setCategory(cat.key)}>
+              {cat.label}
+            </Pill>
           ))}
-          <button
-            onClick={() => setShowUpload((v) => !v)}
-            className="cursor-pointer rounded-full px-5 py-2 text-sm font-semibold tracking-wide uppercase bg-amber-100 text-amber-800 border-2 border-amber-300 hover:bg-amber-200 transition-all duration-200"
-          >
-            {showUpload ? "Close Upload" : "Upload Photo"}
-          </button>
-        </div>
+          <span className="mx-1 hidden h-6 w-px bg-ink/15 sm:block" aria-hidden="true" />
+          <Button variant="secondary" size="sm" onClick={() => setShowUpload((v) => !v)}>
+            {showUpload ? "Close" : "Share a photo"}
+          </Button>
+        </Reveal>
 
-        {/* Upload Form */}
-        {showUpload && (
-          <div className="bg-white rounded-xl shadow-lg border-l-4 border-sky-600 p-6 mb-10 max-w-lg mx-auto">
-            <h2 className="font-[family-name:var(--font-cormorant)] text-2xl text-sky-900 mb-4">
-              Share Your Photo
-            </h2>
+        {/* Upload form */}
+        <AnimatePresence initial={false}>
+          {showUpload && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.5, ease: EASE }}
+              className="overflow-hidden"
+            >
+              <Card className="mx-auto mb-12 max-w-lg" inner="px-6 py-8 sm:px-8">
+                <h2 className="font-display text-3xl font-light text-ink">Share your photo</h2>
 
-            {!groupId ? (
-              <>
-                <p className="text-gray-600 text-sm mb-4">
-                  Find your name so we know who shared the photo.
-                </p>
-                <FamilyFinder onSelected={handleSelected} />
-              </>
-            ) : (
-              <form onSubmit={handleUpload} className="space-y-4">
-                <div className="flex items-center justify-between rounded-lg bg-sky-50 border border-sky-200 px-4 py-2">
-                  <p className="text-sm text-sky-800">
-                    Uploading as the <strong>{familyName}</strong> family
-                  </p>
-                  <button
-                    type="button"
-                    onClick={switchFamily}
-                    className="cursor-pointer text-xs text-sky-600 hover:text-sky-800 underline"
-                  >
-                    Not you?
-                  </button>
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold text-sky-800 mb-1">
-                    Photo <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    id="photo-file-input"
-                    type="file"
-                    accept="image/jpeg,image/png,image/webp"
-                    onChange={(e) => setFile(e.target.files?.[0] || null)}
-                    className="w-full text-sm text-gray-600 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-sky-100 file:text-sky-800 hover:file:bg-sky-200 file:cursor-pointer"
-                  />
-                  <p className="text-xs text-gray-400 mt-1">JPEG, PNG, or WebP. Max 10 MB.</p>
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold text-sky-800 mb-1">
-                    Caption
-                  </label>
-                  <input
-                    className="w-full rounded-lg border-2 border-sky-400 px-4 py-3 focus:border-sky-600 focus:ring-2 focus:ring-sky-200 transition-all duration-200"
-                    value={caption}
-                    onChange={(e) => setCaption(e.target.value)}
-                    placeholder="Add a caption..."
-                  />
-                </div>
-                <button
-                  type="submit"
-                  disabled={uploading}
-                  className="w-full cursor-pointer rounded-lg bg-sky-800 px-6 py-3 text-lg font-bold text-white hover:bg-sky-900 hover:scale-[1.02] transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {uploading ? "Uploading..." : "Upload"}
-                </button>
-              </form>
-            )}
+                {!groupId ? (
+                  <>
+                    <p className="mb-5 mt-2 text-sm text-ink-soft">
+                      Find your name so we know who shared the photo.
+                    </p>
+                    <FamilyFinder onSelected={handleSelected} />
+                  </>
+                ) : (
+                  <form onSubmit={handleUpload} className="mt-5 space-y-5">
+                    <div className="flex items-center justify-between rounded-xl bg-paper-deep px-4 py-2.5">
+                      <p className="text-sm text-ink">
+                        Sharing as the <strong className="font-medium">{familyName}</strong> family
+                      </p>
+                      <button
+                        type="button"
+                        onClick={switchFamily}
+                        className="cursor-pointer text-xs text-ink-soft underline decoration-ink/30 underline-offset-4 hover:text-ink"
+                      >
+                        Not you?
+                      </button>
+                    </div>
+                    <Field label="Photo" hint="JPEG, PNG, or WebP. Max 10 MB.">
+                      <input
+                        id="photo-file-input"
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp"
+                        onChange={(e) => setFile(e.target.files?.[0] || null)}
+                        className="block w-full text-sm text-ink-soft file:mr-4 file:cursor-pointer file:rounded-full file:border-0 file:bg-ink file:px-5 file:py-2.5 file:text-sm file:font-medium file:text-white hover:file:bg-ink/90"
+                      />
+                    </Field>
+                    <Field label="Caption (optional)">
+                      <input
+                        className={inputClass}
+                        value={caption}
+                        onChange={(e) => setCaption(e.target.value)}
+                        placeholder="Add a caption"
+                      />
+                    </Field>
+                    <Button type="submit" arrow className="w-full" disabled={uploading}>
+                      {uploading ? "Uploading..." : "Upload"}
+                    </Button>
+                  </form>
+                )}
 
-            {uploadMsg && (
-              <div
-                className={`mt-4 p-3 rounded text-sm font-medium ${
-                  uploadMsg.includes("uploaded")
-                    ? "bg-green-50 text-green-700 border-l-4 border-green-400"
-                    : "bg-red-50 text-red-700 border-l-4 border-red-400"
-                }`}
-              >
-                {uploadMsg}
-              </div>
-            )}
-          </div>
-        )}
+                {uploadMsg && (
+                  <Notice tone={uploadOk ? "success" : "error"} className="mt-5">
+                    {uploadMsg}
+                  </Notice>
+                )}
+              </Card>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
-        {/* Error */}
         {error && (
-          <div className="bg-red-50 border-l-4 border-red-400 p-4 rounded mb-6 max-w-lg mx-auto">
-            <p className="text-red-700 font-medium">{error}</p>
-          </div>
+          <Notice tone="error" className="mx-auto mb-6 max-w-lg">
+            {error}
+          </Notice>
         )}
 
         {/* Loading */}
         {loading && (
-          <div className="flex justify-center py-16">
-            <p className="text-gray-500">Loading photos...</p>
+          <div className="columns-2 gap-4 space-y-4 md:columns-3 lg:columns-4">
+            {[220, 300, 180, 260, 240, 320, 200, 280].map((h, i) => (
+              <Skeleton key={i} className="break-inside-avoid" style={{ height: h }} />
+            ))}
           </div>
         )}
 
-        {/* Empty State */}
+        {/* Empty */}
         {!loading && photos.length === 0 && (
-          <p className="py-16 text-center text-gray-400 text-lg">
-            No photos yet. Be the first to share a moment!
-          </p>
+          <Reveal className="mx-auto max-w-md py-16 text-center">
+            <p className="font-display text-3xl font-light italic text-ink">Nothing here yet</p>
+            <p className="mt-3 text-sm text-ink-soft">
+              Be the first to share a moment. Photos appear once the couple approves them.
+            </p>
+          </Reveal>
         )}
 
-        {/* Masonry Grid */}
+        {/* Masonry */}
         {!loading && photos.length > 0 && (
-          <div className="columns-2 md:columns-3 lg:columns-4 gap-4 space-y-4">
-            {photos.map((photo) => (
-              <div
+          <div className="columns-2 gap-4 space-y-4 md:columns-3 lg:columns-4">
+            {photos.map((photo, i) => (
+              <motion.button
                 key={photo.id}
-                className="break-inside-avoid group relative overflow-hidden rounded-xl shadow-md cursor-pointer transition-transform duration-300 hover:scale-[1.02]"
+                type="button"
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: Math.min(i, 8) * 0.04, ease: EASE }}
+                className="group relative block w-full cursor-pointer break-inside-avoid overflow-hidden rounded-2xl bg-paper-deep ring-1 ring-ink/10 shadow-lift"
                 onClick={() => setLightbox(photo)}
               >
                 <img
                   src={`/api/photos/${photo.id}/image`}
                   alt={photo.caption || "Wedding photo"}
-                  className="w-full block"
+                  className="block w-full transition-transform duration-1000 ease-[var(--ease-soft)] group-hover:scale-[1.03]"
                   loading="lazy"
                 />
-                {/* Hover overlay with caption */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-4">
-                  {photo.caption && (
-                    <p className="text-white text-sm font-medium mb-1">
-                      {photo.caption}
-                    </p>
-                  )}
-                  <p className="text-white/70 text-xs">
-                    by {photo.uploaded_by}
-                  </p>
+                <div className="absolute inset-0 flex flex-col justify-end bg-gradient-to-t from-ink/70 via-transparent to-transparent p-4 text-left opacity-0 transition-opacity duration-500 group-hover:opacity-100">
+                  {photo.caption && <p className="text-sm text-white">{photo.caption}</p>}
+                  <p className="text-xs text-white/70">by {photo.uploaded_by}</p>
                 </div>
-              </div>
+              </motion.button>
             ))}
           </div>
         )}
 
         {/* Lightbox */}
-        {lightbox && (
-          <div
-            className="fixed inset-0 z-[100] bg-black/90 flex items-center justify-center p-4"
-            onClick={() => setLightbox(null)}
-          >
-            <button
+        <AnimatePresence>
+          {lightbox && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.3 }}
+              className="fixed inset-0 z-[60] flex items-center justify-center bg-ink/90 p-4 backdrop-blur-sm"
               onClick={() => setLightbox(null)}
-              className="absolute top-6 right-6 cursor-pointer text-white/80 hover:text-white transition-colors z-10"
-              aria-label="Close lightbox"
+              role="dialog"
+              aria-modal="true"
             >
-              <svg className="w-10 h-10" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-            <div
-              className="max-w-5xl max-h-[90vh] relative"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <img
-                src={`/api/photos/${lightbox.id}/image`}
-                alt={lightbox.caption || "Wedding photo"}
-                className="max-w-full max-h-[85vh] object-contain rounded-lg"
-              />
-              {(lightbox.caption || lightbox.uploaded_by) && (
-                <div className="mt-4 text-center">
-                  {lightbox.caption && (
-                    <p className="text-white text-lg font-[family-name:var(--font-cormorant)]">
-                      {lightbox.caption}
-                    </p>
-                  )}
-                  <p className="text-white/60 text-sm mt-1">
-                    Uploaded by {lightbox.uploaded_by}
-                  </p>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
+              <button
+                type="button"
+                onClick={() => setLightbox(null)}
+                className="absolute right-5 top-5 flex h-11 w-11 cursor-pointer items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20"
+                aria-label="Close"
+              >
+                <X size={20} weight="light" />
+              </button>
+              <motion.div
+                initial={{ opacity: 0, scale: 0.96, y: 8 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.98 }}
+                transition={{ duration: 0.5, ease: EASE }}
+                className="relative max-h-[90vh] max-w-5xl"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <img
+                  src={`/api/photos/${lightbox.id}/image`}
+                  alt={lightbox.caption || "Wedding photo"}
+                  className="max-h-[82vh] max-w-full rounded-2xl object-contain"
+                />
+                {(lightbox.caption || lightbox.uploaded_by) && (
+                  <div className="mt-4 text-center">
+                    {lightbox.caption && (
+                      <p className="font-display text-xl text-white">{lightbox.caption}</p>
+                    )}
+                    <p className="mt-1 text-xs text-white/60">Shared by {lightbox.uploaded_by}</p>
+                  </div>
+                )}
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </main>
   );
