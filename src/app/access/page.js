@@ -1,19 +1,24 @@
 "use client";
 
 import { Suspense, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
+import { motion, useReducedMotion } from "framer-motion";
+import { Button, Card, Field, Flourish, Notice, inputClass, EASE } from "@/components/ui";
+import { DATE_LABEL } from "@/lib/wedding";
 
 function AccessPageContent() {
-  const router = useRouter();
   const searchParams = useSearchParams();
-
+  const reduce = useReducedMotion();
   const next = searchParams.get("next") || "/";
 
   const [code, setCode] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [opening, setOpening] = useState(false);
 
-  async function submitAccessCode() {
+  async function submitAccessCode(e) {
+    e?.preventDefault();
+    if (!code.trim() || loading) return;
     setError("");
     setLoading(true);
 
@@ -27,79 +32,79 @@ function AccessPageContent() {
     setLoading(false);
 
     if (!res.ok || !json?.ok) {
-      setError(json?.error || "Invalid access code");
+      setError(json?.error || "That code didn't match. Check your invitation and try again.");
       return;
     }
 
-    window.location.assign(next)
+    // Let the card lift away before the page turns.
+    setOpening(true);
+    setTimeout(() => window.location.assign(next), reduce ? 0 : 650);
   }
 
   return (
-    <main className="min-h-screen py-12 px-4">
-      <div className="mx-auto max-w-2xl">
-        {/* Header */}
-        <div className="text-center mb-12 relative">
-          <div className="absolute inset-0 flex items-center justify-center opacity-5">
-            <div className="text-9xl">💌</div>
-          </div>
-          <h1 className="text-5xl md:text-6xl font-serif text-sky-900 mb-4 relative">
-            Access Code
+    <main className="relative flex min-h-[100dvh] items-center justify-center px-4 py-16">
+      <motion.div
+        initial={reduce ? false : { opacity: 0, y: 24, filter: "blur(6px)" }}
+        animate={
+          opening
+            ? { opacity: 0, y: -40, scale: 0.96, filter: "blur(8px)" }
+            : { opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }
+        }
+        transition={{ duration: opening ? 0.65 : 1, ease: EASE }}
+        className="relative z-10 w-full max-w-md"
+      >
+        <Card inner="px-7 pb-10 pt-6 text-center sm:px-10 sm:pb-12">
+          <img
+            src="/art/bouquet.jpg"
+            alt=""
+            className="mx-auto h-44 w-auto mix-blend-multiply sm:h-52"
+            aria-hidden="true"
+          />
+          <p className="mt-2 text-xs uppercase tracking-[0.3em] text-ink-soft">You&apos;re invited</p>
+          <h1 className="mt-4 font-display text-5xl font-light italic leading-none text-ink sm:text-6xl">
+            Tori <span className="not-italic text-ink-soft">&amp;</span> Connor
           </h1>
-          <div className="w-24 h-1 bg-sky-600 mx-auto mb-4"></div>
-          <p className="text-xl text-gray-600 font-serif italic">
-            Enter your invitation code to continue
+          <p className="mt-4 font-display text-lg text-ink-soft">
+            {DATE_LABEL} &middot; Dover, Ohio
           </p>
-        </div>
 
-        {/* Access Code Card */}
-        <div className="bg-white rounded-xl shadow-2xl border-4 border-double border-sky-400 p-8 mb-8 relative overflow-hidden">
-          <div className="absolute top-0 left-0 w-16 h-16 border-t-4 border-l-4 border-sky-300 opacity-50"></div>
-          <div className="absolute bottom-0 right-0 w-16 h-16 border-b-4 border-r-4 border-sky-300 opacity-50"></div>
+          <Flourish className="my-8" />
 
-          <div className="text-center mb-6">
-            <h2 className="text-2xl font-serif text-sky-800 mb-2">
-              Enter Your Access Code
-            </h2>
-            <p className="text-gray-600">You'll find this on your invitation</p>
-          </div>
-
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-semibold text-sky-800 mb-2">
-                Access Code
-              </label>
+          <form onSubmit={submitAccessCode} className="space-y-4 text-left">
+            <Field label="Access code" hint="You'll find this on your invitation.">
               <input
-                className="w-full rounded-lg border-2 border-sky-400 px-4 py-3 text-lg focus:border-sky-600 focus:ring-2 focus:ring-sky-200 transition-all duration-200"
+                className={inputClass}
                 value={code}
                 onChange={(e) => setCode(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && code.trim() && submitAccessCode()}
                 placeholder="Enter your access code"
+                autoFocus
+                autoCapitalize="off"
+                autoCorrect="off"
+                spellCheck={false}
               />
-            </div>
+            </Field>
 
-            <button
-              className="w-full cursor-pointer rounded-lg bg-sky-800 px-6 py-4 text-lg font-bold text-white hover:bg-sky-900 hover:scale-[1.02] transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-60 disabled:hover:scale-100"
-              onClick={submitAccessCode}
-              disabled={loading || !code.trim()}
-            >
-              {loading ? "Checking..." : "Continue"}
-            </button>
+            {error && <Notice tone="error">{error}</Notice>}
 
-            {error && (
-              <div className="bg-red-50 border-l-4 border-red-400 p-4 rounded">
-                <p className="text-red-700 font-medium">{error}</p>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
+            <Button type="submit" size="lg" arrow className="w-full" disabled={loading || !code.trim()}>
+              {loading ? "Checking..." : "Open the invitation"}
+            </Button>
+          </form>
+        </Card>
+      </motion.div>
     </main>
   );
 }
 
 export default function AccessPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><p>Loading...</p></div>}>
+    <Suspense
+      fallback={
+        <div className="flex min-h-[100dvh] items-center justify-center">
+          <p className="font-display text-2xl italic text-ink-soft">One moment...</p>
+        </div>
+      }
+    >
       <AccessPageContent />
     </Suspense>
   );

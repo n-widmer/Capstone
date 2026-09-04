@@ -1,1 +1,141 @@
 @import "tailwindcss";
+
+/*
+  The site's palette, one notch softer than the stock swatches: dusty sky
+  pages, a warm butter landing page, deep blue ink, ivory cards. Radius system: buttons are pills, cards 1.75rem,
+  inputs 0.75rem.
+*/
+@theme {
+  --color-paper: #c6e2f4;
+  --color-paper-deep: #b2d6ee;
+  --color-linen: #93c4e3;
+  --color-ink: #133b5c;
+  --color-ink-soft: #3b6486;
+  --color-dusk: #6db0dc;
+  --color-dusk-soft: #e2eff8;
+  --color-butter: #f8db8a;
+  --color-butter-soft: #fcf0cc;
+  --color-card: #fffdf8;
+  --color-leaf: #7e8f63;
+
+  --font-display: var(--font-cormorant), "Cormorant Garamond", Georgia, serif;
+  --font-body: var(--font-jost), "Jost", "Helvetica Neue", sans-serif;
+
+  --ease-soft: cubic-bezier(0.32, 0.72, 0, 1);
+  --ease-expo: cubic-bezier(0.16, 1, 0.3, 1);
+
+  --shadow-lift: 0 24px 60px -24px rgb(12 74 110 / 0.28);
+  --shadow-hairline: inset 0 1px 0 rgb(255 255 255 / 0.7);
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    background-color: var(--color-paper);
+    color: var(--color-ink);
+    font-family: var(--font-body);
+    font-weight: 300;
+    -webkit-font-smoothing: antialiased;
+  }
+  ::selection {
+    background: var(--color-butter);
+    color: var(--color-ink);
+  }
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+    font-weight: 400;
+  }
+  input,
+  textarea,
+  button {
+    font-family: var(--font-body);
+  }
+  input::placeholder {
+    color: color-mix(in srgb, var(--color-ink-soft) 70%, transparent);
+  }
+  input[type="checkbox"] {
+    accent-color: var(--color-ink);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+@layer utilities {
+  /* warm monochrome for the couple's photo, not a flat grayscale filter */
+  .photo-mono {
+    filter: grayscale(1) sepia(0.22) contrast(1.04) brightness(1.02);
+  }
+  .sway {
+    animation: sway 6s ease-in-out infinite alternate;
+  }
+}
+
+@keyframes sway {
+  from {
+    transform: rotate(-4deg) translateX(-4px);
+  }
+  to {
+    transform: rotate(4deg) translateX(4px);
+  }
+}
+
+/* Landing page is amber; Navigation toggles this class on the body. */
+body.amber {
+  background-color: var(--color-butter);
+}
+
+@keyframes fall {
+  from {
+    transform: translate3d(0, -14vh, 0);
+  }
+  to {
+    transform: translate3d(0, 114vh, 0);
+  }
+}
+.fall {
+  animation: fall var(--fall-duration, 30s) linear infinite;
+  animation-delay: var(--fall-delay, 0s);
+}
+
+@keyframes marquee {
+  to {
+    transform: translateX(-50%);
+  }
+}
+.marquee-track {
+  animation: marquee 48s linear infinite;
+}
+
+/* Monogram preloader: the letters draw themselves, then fill. */
+@keyframes draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes fill-in {
+  to {
+    fill-opacity: 1;
+  }
+}
+.draw-text {
+  fill-opacity: 0;
+  stroke-dasharray: 900;
+  stroke-dashoffset: 900;
+  animation:
+    draw 1.1s cubic-bezier(0.16, 1, 0.3, 1) forwards,
+    fill-in 0.5s ease-out 0.9s forwards;
+}

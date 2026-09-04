@@ -1,7 +1,12 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Heart } from "@phosphor-icons/react";
 import FamilyFinder from "@/components/FamilyFinder";
+import { Button, Card, Field, Notice, PageHeader, Reveal, inputClass, EASE } from "@/components/ui";
+
+const MAX_VOTES = 5;
 
 export default function PlaylistPage() {
   const [groupId, setGroupId] = useState(null);
@@ -9,7 +14,6 @@ export default function PlaylistPage() {
   const [loadingIdentity, setLoadingIdentity] = useState(true);
   const [songs, setSongs] = useState([]);
   const [myVotesUsed, setMyVotesUsed] = useState(0);
-  const [maxVotes] = useState(5);
   const [error, setError] = useState("");
   const [songTitle, setSongTitle] = useState("");
   const [artist, setArtist] = useState("");
@@ -100,8 +104,8 @@ export default function PlaylistPage() {
     const targetSong = songs.find((s) => s.id === songId);
 
     // Check if trying to vote (not unvote) and already at limit
-    if (targetSong && !targetSong.voted_by_me && myVotesUsed >= maxVotes) {
-      setError(`You've used all ${maxVotes} votes! Unvote a song to free one up.`);
+    if (targetSong && !targetSong.voted_by_me && myVotesUsed >= MAX_VOTES) {
+      setError(`You've used all ${MAX_VOTES} votes. Remove one to free it up.`);
       return;
     }
 
@@ -124,40 +128,24 @@ export default function PlaylistPage() {
   // ---------- Find-your-family screen ----------
   if (!groupId) {
     return (
-      <main className="min-h-screen py-12 px-4">
+      <main className="min-h-screen px-4 pb-16">
+        <PageHeader title="Playlist" subtitle="Help us build the soundtrack" />
         <div className="mx-auto max-w-2xl">
-          {/* Header */}
-          <div className="text-center mb-12 relative">
-            <div className="absolute inset-0 flex items-center justify-center opacity-5">
-              <div className="text-9xl">🎵</div>
-            </div>
-            <h1 className="font-[family-name:var(--font-cormorant)] text-5xl md:text-6xl text-sky-900 mb-4 relative">
-              Wedding Playlist
-            </h1>
-            <div className="w-24 h-1 bg-sky-600 mx-auto mb-4"></div>
-            <p className="text-xl text-gray-600 font-[family-name:var(--font-cormorant)] italic">
-              Help us build the perfect soundtrack!
-            </p>
-          </div>
-
-          {/* Find-your-family Card */}
-          <div className="bg-white rounded-xl shadow-2xl border-4 border-double border-sky-400 p-8 mb-8 relative overflow-hidden">
-            <div className="absolute top-0 left-0 w-16 h-16 border-t-4 border-l-4 border-sky-300 opacity-50"></div>
-            <div className="absolute bottom-0 right-0 w-16 h-16 border-b-4 border-r-4 border-sky-300 opacity-50"></div>
-
-            <div className="text-center mb-6">
-              <h2 className="text-2xl font-[family-name:var(--font-cormorant)] text-sky-800 mb-2">
-                Find Your Group
-              </h2>
-              <p className="text-gray-600">Search your name to vote and request songs</p>
-            </div>
-
-            {loadingIdentity ? (
-              <p className="text-center text-gray-500 py-4">Loading…</p>
-            ) : (
-              <FamilyFinder onSelected={handleSelected} autoFocus />
-            )}
-          </div>
+          <Reveal>
+            <Card inner="px-6 py-8 sm:px-10 sm:py-10">
+              <div className="mb-6 text-center">
+                <h2 className="font-display text-3xl font-light text-ink">Find your group</h2>
+                <p className="mt-2 text-sm text-ink-soft">
+                  Search your name to request songs and vote on the list.
+                </p>
+              </div>
+              {loadingIdentity ? (
+                <p className="py-4 text-center text-sm text-ink-soft">Loading...</p>
+              ) : (
+                <FamilyFinder onSelected={handleSelected} autoFocus />
+              )}
+            </Card>
+          </Reveal>
         </div>
       </main>
     );
@@ -165,143 +153,132 @@ export default function PlaylistPage() {
 
   // ---------- Playlist screen ----------
   return (
-    <main className="min-h-screen py-12 px-4">
-      <div className="mx-auto max-w-2xl">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="font-[family-name:var(--font-cormorant)] text-5xl md:text-6xl text-sky-900 mb-4">
-            Wedding Playlist
-          </h1>
-          <div className="w-24 h-1 bg-sky-600 mx-auto mb-4"></div>
-          <p className="text-sm text-gray-600">
-            Votes used:{" "}
-            <span className={`font-bold ${myVotesUsed >= maxVotes ? "text-red-600" : "text-sky-800"}`}>
-              {myVotesUsed}/{maxVotes}
-            </span>
-          </p>
+    <main className="min-h-screen px-4 pb-16">
+      <PageHeader title="Playlist" subtitle="Help us build the soundtrack">
+        <div className="mt-6 flex flex-col items-center gap-2">
+          <span className="rounded-full bg-paper-deep px-4 py-1.5 text-sm text-ink ring-1 ring-ink/10">
+            {myVotesUsed} of {MAX_VOTES} votes used
+          </span>
           {familyName && (
-            <p className="text-xs text-gray-400 mt-1">
-              Voting as the {familyName} family ·{" "}
+            <p className="text-xs text-ink-soft">
+              Voting as the {familyName} family.{" "}
               <button
+                type="button"
                 onClick={switchFamily}
-                className="cursor-pointer text-sky-600 hover:text-sky-800 underline"
+                className="cursor-pointer underline decoration-ink/30 underline-offset-4 hover:text-ink"
               >
                 Not you?
               </button>
             </p>
           )}
         </div>
+      </PageHeader>
 
-        {/* Error banner */}
+      <div className="mx-auto max-w-2xl">
         {error && (
-          <div className="bg-red-50 border-l-4 border-red-400 p-4 rounded mb-6">
-            <p className="text-red-700 font-medium">{error}</p>
-          </div>
+          <Notice tone="error" className="mb-6">
+            {error}
+          </Notice>
         )}
 
-        {/* Request a Song form */}
-        <div className="bg-white rounded-xl shadow-lg border-l-4 border-sky-600 p-6 mb-8">
-          <h2 className="font-[family-name:var(--font-cormorant)] text-2xl text-sky-900 mb-4">
-            Request a Song
-          </h2>
-          <form onSubmit={handleAddSong} className="space-y-3">
-            <div>
-              <label className="block text-sm font-semibold text-sky-800 mb-1">
-                Song Title <span className="text-red-500">*</span>
-              </label>
-              <input
-                className="w-full rounded-lg border-2 border-sky-400 px-4 py-3 focus:border-sky-600 focus:ring-2 focus:ring-sky-200 transition-all duration-200"
-                value={songTitle}
-                onChange={(e) => setSongTitle(e.target.value)}
-                placeholder="Enter song title..."
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-semibold text-sky-800 mb-1">
-                Artist
-              </label>
-              <input
-                className="w-full rounded-lg border-2 border-sky-400 px-4 py-3 focus:border-sky-600 focus:ring-2 focus:ring-sky-200 transition-all duration-200"
-                value={artist}
-                onChange={(e) => setArtist(e.target.value)}
-                placeholder="Enter artist name..."
-              />
-            </div>
-            <button
-              type="submit"
-              disabled={submitting}
-              className="w-full cursor-pointer rounded-lg bg-sky-800 px-6 py-3 text-lg font-bold text-white hover:bg-sky-900 hover:scale-[1.02] transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {submitting ? "Adding..." : "Add Song"}
-            </button>
-          </form>
-        </div>
+        {/* Request a song */}
+        <Reveal>
+          <Card inner="px-6 py-8 sm:px-8">
+            <h2 className="font-display text-3xl font-light text-ink">Request a song</h2>
+            <form onSubmit={handleAddSong} className="mt-5 space-y-4">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <Field label="Song title">
+                  <input
+                    className={inputClass}
+                    value={songTitle}
+                    onChange={(e) => setSongTitle(e.target.value)}
+                    placeholder="Song title"
+                    required
+                  />
+                </Field>
+                <Field label="Artist (optional)">
+                  <input
+                    className={inputClass}
+                    value={artist}
+                    onChange={(e) => setArtist(e.target.value)}
+                    placeholder="Artist"
+                  />
+                </Field>
+              </div>
+              <Button type="submit" arrow className="w-full" disabled={submitting}>
+                {submitting ? "Adding..." : "Add to the list"}
+              </Button>
+            </form>
+          </Card>
+        </Reveal>
 
-        {/* Song List */}
-        <div className="space-y-3">
+        {/* Song list */}
+        <div className="mt-10">
           {songs.length === 0 ? (
-            <p className="py-12 text-center text-gray-400">
-              No songs requested yet. Be the first!
-            </p>
+            <Reveal className="py-12 text-center">
+              <p className="font-display text-3xl font-light italic text-ink">No requests yet</p>
+              <p className="mt-2 text-sm text-ink-soft">Be the first to add a song.</p>
+            </Reveal>
           ) : (
-            songs.map((song, index) => {
-              const rank = index + 1;
-              const isTopTen = rank <= 10;
+            <ol className="space-y-2.5">
+              <AnimatePresence initial={false}>
+                {songs.map((song, index) => {
+                  const rank = index + 1;
+                  const isTopTen = rank <= 10;
+                  return (
+                    <motion.li
+                      key={song.id}
+                      layout
+                      initial={{ opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.5, ease: EASE }}
+                      className="flex items-center gap-4 rounded-2xl bg-card px-4 py-3.5 ring-1 ring-ink/10 sm:px-5"
+                    >
+                      <span
+                        className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full font-display text-xl ${
+                          isTopTen ? "bg-butter-soft text-ink" : "bg-paper-deep text-ink-soft"
+                        }`}
+                      >
+                        {rank}
+                      </span>
 
-              return (
-                <div
-                  key={song.id}
-                  className={`bg-white rounded-xl shadow-sm border border-gray-200 p-4 flex items-center gap-4 transition-all ${
-                    isTopTen ? "border-l-4 border-l-amber-400" : ""
-                  }`}
-                >
-                  {/* Rank */}
-                  <div className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold ${
-                    isTopTen
-                      ? "bg-amber-100 text-amber-800"
-                      : "bg-gray-100 text-gray-500"
-                  }`}>
-                    #{rank}
-                  </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate font-display text-xl text-ink">{song.song_title}</p>
+                        {song.artist && (
+                          <p className="truncate text-sm text-ink-soft">{song.artist}</p>
+                        )}
+                        <p className="mt-0.5 text-xs text-ink-soft/80">
+                          Requested by {song.requested_by}
+                        </p>
+                      </div>
 
-                  {/* Song Info */}
-                  <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-gray-900 truncate">{song.song_title}</p>
-                    {song.artist && (
-                      <p className="text-sm text-gray-500 truncate">{song.artist}</p>
-                    )}
-                    <p className="text-xs text-gray-400 mt-0.5">
-                      Requested by {song.requested_by}
-                    </p>
-                  </div>
+                      <div className="shrink-0 text-center">
+                        <p className="font-display text-2xl leading-none text-ink">{song.votes}</p>
+                        <p className="mt-1 text-[10px] uppercase tracking-[0.15em] text-ink-soft">
+                          {song.votes === 1 ? "vote" : "votes"}
+                        </p>
+                      </div>
 
-                  {/* Vote count */}
-                  <div className="flex-shrink-0 text-center">
-                    <p className="text-lg font-bold text-sky-800">{song.votes}</p>
-                    <p className="text-xs text-gray-400">
-                      {song.votes === 1 ? "vote" : "votes"}
-                    </p>
-                  </div>
-
-                  {/* Heart vote button */}
-                  <button
-                    onClick={() => handleVote(song.id)}
-                    className="flex-shrink-0 cursor-pointer p-2 rounded-full transition-all hover:scale-110"
-                    title={song.voted_by_me ? "Remove vote" : "Vote for this song"}
-                  >
-                    {song.voted_by_me ? (
-                      <svg className="w-7 h-7 text-red-500" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
-                      </svg>
-                    ) : (
-                      <svg className="w-7 h-7 text-gray-300 hover:text-red-300" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                      </svg>
-                    )}
-                  </button>
-                </div>
-              );
-            })
+                      <button
+                        type="button"
+                        onClick={() => handleVote(song.id)}
+                        className={`flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-full transition-all duration-500 ease-[var(--ease-soft)] active:scale-90 ${
+                          song.voted_by_me
+                            ? "bg-ink text-white"
+                            : "bg-card text-ink-soft ring-1 ring-ink/10 hover:text-ink hover:ring-ink/30"
+                        }`}
+                        aria-pressed={!!song.voted_by_me}
+                        aria-label={song.voted_by_me ? "Remove your vote" : "Vote for this song"}
+                        title={song.voted_by_me ? "Remove vote" : "Vote for this song"}
+                      >
+                        <Heart size={20} weight={song.voted_by_me ? "fill" : "light"} />
+                      </button>
+                    </motion.li>
+                  );
+                })}
+              </AnimatePresence>
+            </ol>
           )}
         </div>
       </div>
