@@ -18,8 +18,12 @@ export default function PageTransition({ children }) {
     firstRender.current = false;
   }, []);
 
+  // The nav floats over the page, so every page except the hero-led home and
+  // the chrome-less access/admin routes needs room under it.
+  const bare = pathname === "/" || pathname === "/access" || pathname.startsWith("/admin");
+
   return (
-    <div className="relative z-10">
+    <div className={`relative z-10 ${bare ? "" : "pt-24 md:pt-28"}`}>
       <AnimatePresence initial={false}>
         {!reduce && (
           <motion.div
